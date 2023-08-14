@@ -1,0 +1,31 @@
+---
+BasedOnStyle: LLVM
+# White space
+UseTab: Never
+IndentWidth: 4
+# General formatting parameters
+ColumnLimit: 120
+# Braces
+BreakBeforeBraces: Allman
+# Code alignment
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignEscapedNewlines: true
+AlignTrailingComments: true
+# Single line
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+# Breaks
+AlwaysBreakAfterReturnType: All
+BreakConstructorInitializers: BeforeColon
+# Control flow statements
+IndentCaseLabels: true
+---
+Language: Cpp
+# Force pointers to the type for C++.
+DerivePointerAlignment: false
+PointerAlignment: Left
+---
+

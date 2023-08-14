@@ -1,0 +1,65 @@
+name: analysis
+
+channels:
+  - defaults
+  - conda-forge
+  - pytorch
+  - nvidia
+
+dependencies:
+  # Jupyter notebooks
+  - ipykernel
+  - ipywidgets
+  - ipympl
+
+  # formatting
+  - autopep8
+  - black
+  - flake8
+  - pylint
+
+  # testing
+  - pytest
+  - pytest-cov
+
+  # parallelization
+  - bokeh>=2.1.1
+  - dask=2023.3.1
+  - dask-labextension
+  - joblib
+  - tqdm
+
+  # documentation
+  - sphinx
+  - sphinx_rtd_theme
+  - nbsphinx
+
+  # plotting
+  - matplotlib
+  - seaborn
+  - colorcet
+  - cmasher
+
+  # data analysis
+  - numpy
+  - pandas
+  - pyarrow
+  - pytorch=2.0.0
+  - pytorch-cuda=11.8
+  - scikit-learn-intelex=2023.0.2
+  - torchvision
+  - torchaudio
+  - rdkit
+
+  # MD packages
+  - gromacswrapper=0.8.3
+  - mdanalysis=2.4.2
+  - mdanalysistests=2.4.2
+  - panedr=0.7.1
+  - parmed=4.0.0
+  - plumed=2.8.2
+  - py-plumed=2.8.2
+
+  # movies
+  - moviepy=1.0.3
+  - nglview=3.0.3

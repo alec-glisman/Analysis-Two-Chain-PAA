@@ -1,0 +1,62 @@
+---
+name: Pytest
+on: [pull_request]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 5
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - name: Remove docs before testing
+        run: rm -rf /github/workspace/docs
+
+      - name: Remove tutorials before testing
+        run: rm -rf /github/workspace/tutorials
+
+      - name: Remove archived code before testing
+        run: rm -rf /github/workspace/src/archive
+      
+      - name: Fetch actions (v2)
+        uses: actions/checkout@v2
+
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: requirements/testing.yml
+          activate-environment: test
+          auto-activate-base: false
+          
+      - name: Conda info
+        run: |
+          conda info
+          conda list
+
+      - name: Lint with flake8
+        run: |
+          # activate the test environment
+          conda activate test
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor 
+          # is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 \
+            --max-line-length=127 --statistics
+
+      - name: Test with pytest
+        run: |
+          conda activate test
+          pytest --cov-config=.coveragerc \
+              --cov=src --cov-report xml \
+              src/
+        
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+            env_vars: OS,PYTHON
+            verbose: true

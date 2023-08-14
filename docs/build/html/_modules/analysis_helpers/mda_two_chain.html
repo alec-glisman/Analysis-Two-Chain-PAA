@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>analysis_helpers.mda_two_chain &mdash; Analysis Two Chain PAA v2.0.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Analysis Two Chain PAA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../analysis_helpers.html">analysis_helpers package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../colvar_parallel.html">colvar_parallel package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../figures.html">figures package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../stats.html">stats package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">utils package</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Key files:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../colvar_parallel.base.html">colvar_parallel.base module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../stats.block_error.html">stats.block_error module</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">External links:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://www.dask.org/get-started">Dask</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/quickstart.html">MDAnalysis Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/README.html">MDAnalysis Examples</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis_modules.html">MDAnalysis Analysis Modules</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://www.plumed.org/doc-v2.8/user-doc/html/tutorials.html">Plumed Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Analysis Two Chain PAA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">analysis_helpers.mda_two_chain</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for analysis_helpers.mda_two_chain</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Alec Glisman (GitHub: @alec-glisman)</span>
+<span class="sd">Date: 2023-03-09</span>
+<span class="sd">Description: Functions to load, parse, and analyze topology and trajectory</span>
+<span class="sd">data from the GROMACS output files generated during the MD simulations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Standard library</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="c1"># Third party packages</span>
+<span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">cpu_count</span>
+<span class="kn">import</span> <span class="nn">MDAnalysis</span> <span class="k">as</span> <span class="nn">mda</span>
+<span class="kn">from</span> <span class="nn">MDAnalysis</span> <span class="kn">import</span> <span class="n">transformations</span> <span class="k">as</span> <span class="n">trans</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># add local src directory to path</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="s2">&quot;src&quot;</span><span class="p">))</span>
+
+<span class="c1"># Internal dependencies</span>
+<span class="kn">from</span> <span class="nn">utils.logs</span> <span class="kn">import</span> <span class="n">setup_logging</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span> <span class="nn">utils.parsers</span> <span class="kn">import</span> <span class="n">parse_tags</span>  <span class="c1"># noqa: E402</span>
+
+
+<div class="viewcode-block" id="find_top_trj"><a class="viewcode-back" href="../../analysis_helpers.mda_two_chain.html#analysis_helpers.mda_two_chain.find_top_trj">[docs]</a><span class="k">def</span> <span class="nf">find_top_trj</span><span class="p">(</span>
+    <span class="n">d_data</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="n">Path</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find the topology and trajectory files for the simulation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    d_data : Path</span>
+<span class="sd">        Path to the data directory</span>
+<span class="sd">    fname : str, optional</span>
+<span class="sd">        Name of the simulation, by default None</span>
+<span class="sd">    verbose : bool, optional</span>
+<span class="sd">        If True, the logging level is set to DEBUG, by default False</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple[Path, Path]</span>
+<span class="sd">        Path to the topology and trajectory files</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;find_top_trj.log&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data directory: </span><span class="si">{</span><span class="n">d_data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Filename: </span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Verbose: </span><span class="si">{</span><span class="n">verbose</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">trj</span> <span class="o">=</span> <span class="n">d_data</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">.xtc&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">top</span> <span class="o">=</span> <span class="n">d_data</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">.tpr&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">top</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">top</span> <span class="o">=</span> <span class="n">d_data</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">.pdb&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">top</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Topology file not found: </span><span class="si">{</span><span class="n">top</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data directory: </span><span class="si">{</span><span class="n">d_data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Topology file: </span><span class="si">{</span><span class="n">top</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Trajectory file: </span><span class="si">{</span><span class="n">trj</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># verify that the data files exist</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">top</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Topology file not found: </span><span class="si">{</span><span class="n">top</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">trj</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Trajectory file not found: </span><span class="si">{</span><span class="n">trj</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">top</span><span class="p">,</span> <span class="n">trj</span></div>
+
+
+<div class="viewcode-block" id="load_universe"><a class="viewcode-back" href="../../analysis_helpers.mda_two_chain.html#analysis_helpers.mda_two_chain.load_universe">[docs]</a><span class="k">def</span> <span class="nf">load_universe</span><span class="p">(</span>
+    <span class="n">working_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">unwrap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">refresh</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load a MDAnalysis Universe from a GROMACS trajectory file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    working_dir : str</span>
+<span class="sd">        Path to the desired working directory for data output</span>
+<span class="sd">    data_dir : str</span>
+<span class="sd">        Path to the directory containing the GROMACS data files</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Name of the GROMACS trajectory file</span>
+<span class="sd">    tag : str</span>
+<span class="sd">        Unique tag for the data set</span>
+<span class="sd">    refresh : bool, optional</span>
+<span class="sd">        If True, the data is reloaded from the original data files,</span>
+<span class="sd">        by default False</span>
+<span class="sd">    unwrap : bool, optional</span>
+<span class="sd">        If True, the trajectory is unwrapped, by default False</span>
+<span class="sd">    verbose : bool, optional</span>
+<span class="sd">        If True, the logging level is set to DEBUG, by default False</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple[mda.Universe, dict, dict]</span>
+<span class="sd">        MDAnalysis Universe, dictionary of system information, and</span>
+<span class="sd">        dictionary of selection strings</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;load_mda_universe.log&quot;</span><span class="p">)</span>
+
+    <span class="c1"># create mdanalysis main directory and change to it</span>
+    <span class="n">dir_mda</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">working_dir</span><span class="si">}</span><span class="s2">/mdanalysis&quot;</span><span class="p">)</span>
+    <span class="n">dir_mda</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dir_mda</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># create data sub-directory and change to it</span>
+    <span class="n">dir_mda_data</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dir_mda</span><span class="si">}</span><span class="s2">/data&quot;</span><span class="p">)</span>
+    <span class="n">dir_mda_data</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dir_mda_data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Moved to directory: </span><span class="si">{</span><span class="n">dir_mda_data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># parse system information</span>
+    <span class="n">monomer</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="n">parse_tags</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">info_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;monomer&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">monomer</span><span class="p">),</span> <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">system</span><span class="p">),</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">title</span><span class="p">)}</span>
+    <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;data_dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">monomer</span> <span class="o">==</span> <span class="s2">&quot;Acr&quot;</span><span class="p">:</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;polymer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;PAA&quot;</span>
+    <span class="k">elif</span> <span class="n">monomer</span> <span class="o">==</span> <span class="s2">&quot;Asp&quot;</span><span class="p">:</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;polymer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;PASA&quot;</span>
+    <span class="k">elif</span> <span class="n">monomer</span> <span class="o">==</span> <span class="s2">&quot;Glu&quot;</span><span class="p">:</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;polymer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;PGA&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Monomer not recognized&quot;</span><span class="p">)</span>
+
+    <span class="c1"># set selection dictionary</span>
+    <span class="n">chain_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">]</span>
+    <span class="n">sel_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># solvent molecules</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;water&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;resname SOL&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;water_O&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;resname SOL and name OW&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;water_H&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;resname SOL and name HW1 HW2&quot;</span>
+    <span class="c1"># polymer atoms</span>
+    <span class="n">sel_dict</span><span class="p">[</span>
+        <span class="s2">&quot;pe&quot;</span>
+    <span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;protein or (resname LAI ACI RAI AI1 LAN ACN RAN AN1 LAC ACE RAC AC1 LAL ALC RAL AL1)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;chain_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(segid </span><span class="si">{</span><span class="n">chain_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;chain_B&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(segid </span><span class="si">{</span><span class="n">chain_ids</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;backbone&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(name CA C N) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;backbone_chain_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(name CA C N) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;chain_A&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;backbone_chain_B&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(name CA C N) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;chain_B&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;C_alpha&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(name CA) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;C_alpha_chain_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(name CA) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;chain_A&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;C_alpha_chain_B&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(name CA) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;chain_B&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="c1"># monatomic ions</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;Ca&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;resname CA&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;Na&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;resname NA&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;Cl&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;resname CL&quot;</span>
+    <span class="c1"># carboxylate groups</span>
+    <span class="k">if</span> <span class="n">monomer</span> <span class="o">==</span> <span class="s2">&quot;Acr&quot;</span><span class="p">:</span>
+        <span class="n">sel_co</span> <span class="o">=</span> <span class="s2">&quot;name CB&quot;</span>  <span class="c1"># carboxylate carbon</span>
+        <span class="n">sel_os</span> <span class="o">=</span> <span class="s2">&quot;name OB1 OB2&quot;</span>  <span class="c1"># carboxylate oxygen</span>
+    <span class="k">elif</span> <span class="n">monomer</span> <span class="o">==</span> <span class="s2">&quot;Asp&quot;</span><span class="p">:</span>
+        <span class="n">sel_co</span> <span class="o">=</span> <span class="s2">&quot;name CG&quot;</span>
+        <span class="n">sel_os</span> <span class="o">=</span> <span class="s2">&quot;name OD1 OD2 OC1 OC2&quot;</span>
+    <span class="k">elif</span> <span class="n">monomer</span> <span class="o">==</span> <span class="s2">&quot;Glu&quot;</span><span class="p">:</span>
+        <span class="n">sel_co</span> <span class="o">=</span> <span class="s2">&quot;name CD&quot;</span>
+        <span class="n">sel_os</span> <span class="o">=</span> <span class="s2">&quot;name OE1 OE2 OC1 OC2&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid monomer: </span><span class="si">{</span><span class="n">monomer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># functional groups</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;carboxy_O&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">sel_os</span><span class="si">}</span><span class="s2">) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;carboxy_O_chain_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">sel_os</span><span class="si">}</span><span class="s2">) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;chain_A&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;carboxy_O_chain_B&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">sel_os</span><span class="si">}</span><span class="s2">) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;chain_B&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;carboxy_C&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">sel_co</span><span class="si">}</span><span class="s2">) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;carboxy_C_chain_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">sel_co</span><span class="si">}</span><span class="s2">) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;chain_A&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;carboxy_C_chain_B&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">sel_co</span><span class="si">}</span><span class="s2">) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;chain_B&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;mainchain_O&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(name O) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;mainchain_N&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(name N) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;pe_O&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;mainchain_O&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">) or (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;carboxy_O&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="c1"># distance cutoffs</span>
+    <span class="n">gr_dist_ion_c_monodentate</span> <span class="o">=</span> <span class="mf">0.338</span> <span class="o">*</span> <span class="mi">10</span>  <span class="c1"># Angstrom</span>
+    <span class="n">gr_dist_ion_c_bidentate</span> <span class="o">=</span> <span class="mf">0.456</span> <span class="o">*</span> <span class="mi">10</span>
+    <span class="n">gr_dist_ion_o</span> <span class="o">=</span> <span class="mf">0.34</span> <span class="o">*</span> <span class="mi">10</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;gr_dist_ion_c_monodentate_ang&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gr_dist_ion_c_monodentate</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;gr_dist_ion_c_bidentate_ang&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gr_dist_ion_c_bidentate</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;gr_dist_ion_o_ang&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gr_dist_ion_o</span>
+    <span class="n">sel_dict</span><span class="p">[</span>
+        <span class="s2">&quot;monodentate&quot;</span>
+    <span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;around </span><span class="si">{</span><span class="n">gr_dist_ion_c_monodentate</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;carboxy_C&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;bidentate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;around </span><span class="si">{</span><span class="n">gr_dist_ion_c_bidentate</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;carboxy_C&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;adsorbed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;around </span><span class="si">{</span><span class="n">gr_dist_ion_o</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe_O&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;adsorbed_chain_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;around </span><span class="si">{</span><span class="n">gr_dist_ion_o</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe_O&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;and </span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;chain_A&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="p">)</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;adsorbed_chain_B&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;around </span><span class="si">{</span><span class="n">gr_dist_ion_o</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe_O&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;and </span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;chain_B&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="p">)</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;bridging&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;around </span><span class="si">{</span><span class="n">gr_dist_ion_o</span><span class="si">}</span><span class="s2"> &quot;</span>
+        <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe_O&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;chain_A&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; and around </span><span class="si">{</span><span class="n">gr_dist_ion_o</span><span class="si">}</span><span class="s2"> &quot;</span>
+        <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe_O&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;chain_B&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="p">)</span>
+    <span class="c1"># ions within distance cutoffs</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;adsorbed_Ca&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;Ca&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;adsorbed&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;adsorbed_Na&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;Na&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">) and (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;adsorbed&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="c1"># find gromacs files</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading universe&quot;</span><span class="p">)</span>
+    <span class="n">f_top</span><span class="p">,</span> <span class="n">f_trj</span> <span class="o">=</span> <span class="n">find_top_trj</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">uni</span> <span class="o">=</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">f_top</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">f_trj</span><span class="p">),</span> <span class="n">refresh_offsets</span><span class="o">=</span><span class="n">refresh</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded universe from </span><span class="si">{</span><span class="n">f_top</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">f_trj</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;f_top&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">f_top</span><span class="p">)</span>
+    <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;f_trj&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">f_trj</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_frames&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_frames&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_atoms&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
+    <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_residues&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">residues</span><span class="p">))</span>
+    <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;residues&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">residues</span><span class="o">.</span><span class="n">resnames</span><span class="p">))</span>
+    <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_segments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">segments</span><span class="p">))</span>
+    <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;segments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span> <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">uni</span><span class="o">.</span><span class="n">segments</span><span class="o">.</span><span class="n">segments</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_monomers&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;chain_A&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_Ca&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;Ca&quot;</span><span class="p">]))</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_Na&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;Na&quot;</span><span class="p">]))</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_Cl&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;Cl&quot;</span><span class="p">]))</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;final_time_ns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">time</span> <span class="o">/</span> <span class="mf">1000.0</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_monomers&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_Ca&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_Na&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_Cl&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;final_time_ns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="c1"># get box size</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;box_size_nm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;box_size_nm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;original_segments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span> <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">uni</span><span class="o">.</span><span class="n">segments</span><span class="o">.</span><span class="n">segments</span><span class="p">]</span>
+
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;System information&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of frames: </span><span class="si">{</span><span class="n">info_dict</span><span class="p">[</span><span class="s1">&#39;n_frames&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of atoms: </span><span class="si">{</span><span class="n">info_dict</span><span class="p">[</span><span class="s1">&#39;n_atoms&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of residues: </span><span class="si">{</span><span class="n">info_dict</span><span class="p">[</span><span class="s1">&#39;n_residues&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Name of residues: </span><span class="si">{</span><span class="n">info_dict</span><span class="p">[</span><span class="s1">&#39;residues&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Segment IDs: </span><span class="si">{</span><span class="n">info_dict</span><span class="p">[</span><span class="s1">&#39;segments&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Box size: </span><span class="si">{</span><span class="n">info_dict</span><span class="p">[</span><span class="s1">&#39;box_size_nm&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of monomers: </span><span class="si">{</span><span class="n">info_dict</span><span class="p">[</span><span class="s1">&#39;n_monomers&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of Ca: </span><span class="si">{</span><span class="n">info_dict</span><span class="p">[</span><span class="s1">&#39;n_Ca&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of Na: </span><span class="si">{</span><span class="n">info_dict</span><span class="p">[</span><span class="s1">&#39;n_Na&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of Cl: </span><span class="si">{</span><span class="n">info_dict</span><span class="p">[</span><span class="s1">&#39;n_Cl&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final trajectory time: </span><span class="si">{</span><span class="n">info_dict</span><span class="p">[</span><span class="s1">&#39;final_time_ns&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ns&quot;</span><span class="p">)</span>
+
+    <span class="c1"># set topology information</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Setting topology information&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">uni</span><span class="o">.</span><span class="n">segments</span><span class="o">.</span><span class="n">segments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">segid</span> <span class="o">=</span> <span class="n">chain_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">uni</span><span class="o">.</span><span class="n">segments</span><span class="o">.</span><span class="n">segments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">segid</span> <span class="o">=</span> <span class="n">chain_ids</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
+        <span class="n">guessed_elements</span> <span class="o">=</span> <span class="n">mda</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">guessers</span><span class="o">.</span><span class="n">guess_types</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+        <span class="n">uni</span><span class="o">.</span><span class="n">add_TopologyAttr</span><span class="p">(</span><span class="s2">&quot;elements&quot;</span><span class="p">,</span> <span class="n">guessed_elements</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="n">sel_chain_a</span><span class="p">,</span> <span class="n">sel_chain_b</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;segid </span><span class="si">{</span><span class="n">chain_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;segid </span><span class="si">{</span><span class="n">chain_ids</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">ag_chain_a</span><span class="p">,</span> <span class="n">ag_chain_b</span> <span class="o">=</span> <span class="n">uni</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="n">sel_chain_a</span><span class="p">),</span> <span class="n">uni</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span>
+        <span class="n">sel_chain_b</span>
+    <span class="p">)</span>
+    <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_atoms_chain_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ag_chain_a</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
+    <span class="n">info_dict</span><span class="p">[</span><span class="s2">&quot;n_atoms_chain_B&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ag_chain_b</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
+
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of atoms in Chain A: </span><span class="si">{</span><span class="n">ag_chain_a</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">n_atoms</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of atoms in Chain B: </span><span class="si">{</span><span class="n">ag_chain_b</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">n_atoms</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done loading universe&quot;</span><span class="p">)</span>
+
+    <span class="c1"># save selection dictionary and info dictionary</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;sel_dict_</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">sel_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;info_dict_</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">info_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="c1"># return to original directory</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">working_dir</span><span class="p">)</span>
+
+    <span class="c1"># unwrap trajectory and center chains in box</span>
+    <span class="k">if</span> <span class="n">unwrap</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Unwrapping trajectory&quot;</span><span class="p">)</span>
+        <span class="n">protein</span> <span class="o">=</span> <span class="n">uni</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="n">sel_dict</span><span class="p">[</span><span class="s2">&quot;pe&quot;</span><span class="p">])</span>
+        <span class="n">not_protein</span> <span class="o">=</span> <span class="n">uni</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;not (</span><span class="si">{</span><span class="n">sel_dict</span><span class="p">[</span><span class="s1">&#39;pe&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="n">ncpu</span> <span class="o">=</span> <span class="n">cpu_count</span><span class="p">()</span>
+        <span class="n">transforms</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">trans</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">uni</span><span class="o">.</span><span class="n">atoms</span><span class="p">,</span> <span class="n">max_threads</span><span class="o">=</span><span class="n">ncpu</span><span class="p">),</span>
+            <span class="n">trans</span><span class="o">.</span><span class="n">center_in_box</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="s2">&quot;geometry&quot;</span><span class="p">,</span> <span class="n">max_threads</span><span class="o">=</span><span class="n">ncpu</span><span class="p">),</span>
+            <span class="n">trans</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">not_protein</span><span class="p">,</span> <span class="n">max_threads</span><span class="o">=</span><span class="n">ncpu</span><span class="p">),</span>
+            <span class="n">trans</span><span class="o">.</span><span class="n">fit_rot_trans</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="s2">&quot;mass&quot;</span><span class="p">,</span> <span class="n">max_threads</span><span class="o">=</span><span class="n">ncpu</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">uni</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">add_transformations</span><span class="p">(</span><span class="o">*</span><span class="n">transforms</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">uni</span><span class="p">,</span> <span class="n">sel_dict</span><span class="p">,</span> <span class="n">info_dict</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Alec Glisman.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

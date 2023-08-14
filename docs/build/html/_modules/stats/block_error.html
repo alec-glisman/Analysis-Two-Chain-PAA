@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>stats.block_error &mdash; Analysis Two Chain PAA v2.0.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Analysis Two Chain PAA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../analysis_helpers.html">analysis_helpers package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../colvar_parallel.html">colvar_parallel package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../figures.html">figures package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../stats.html">stats package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">utils package</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Key files:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../colvar_parallel.base.html">colvar_parallel.base module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../stats.block_error.html">stats.block_error module</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">External links:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://www.dask.org/get-started">Dask</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/quickstart.html">MDAnalysis Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/README.html">MDAnalysis Examples</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis_modules.html">MDAnalysis Analysis Modules</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://www.plumed.org/doc-v2.8/user-doc/html/tutorials.html">Plumed Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Analysis Two Chain PAA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">stats.block_error</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for stats.block_error</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Alec Glisman (GitHub: @alec-glisman)</span>
+<span class="sd">Date: 2023-03-14</span>
+<span class="sd">Description: Script contains methods to block average data and estimate</span>
+<span class="sd">error/decorrelation time. Calculations are accelerated using Dask.</span>
+
+<span class="sd">A good review/explanation of the following code can be found in the Plumed</span>
+<span class="sd">Masterclass 21.2: Statistical errors in MD, Exercise 8: Weighted averages.</span>
+<span class="sd">https://www.plumed.org/doc-v2.7/user-doc/html/masterclass-21-2.html#masterclass-21-2-ex-8</span>
+
+<span class="sd">There exists a second tutorial in the Plumed documentation as well.</span>
+<span class="sd">https://www.plumed.org/doc-v2.7/user-doc/html/trieste-2.html</span>
+
+<span class="sd">Further information on block averaging is found in the Plumed documentation</span>
+<span class="sd">for the histogram module.</span>
+<span class="sd">https://www.plumed.org/doc-v2.7/user-doc/html/_h_i_s_t_o_g_r_a_m.html</span>
+
+<span class="sd">We estimate the overall histogram of the collective variables (CVs) by</span>
+<span class="sd">constructing independent histograms from each block of data. We construct</span>
+<span class="sd">the final histogram as a weighted average of the block histograms with the</span>
+<span class="sd">input weights. If no bias is applied to the MD simulation, the weights are</span>
+<span class="sd">all unity and the final histogram is the simple average of the block</span>
+<span class="sd">histograms. The final histogram is not a function of the block size.</span>
+
+<span class="sd">However, the error of the final histogram is a function of the block size.</span>
+<span class="sd">This is caused by correlations between data points, which invalidates the</span>
+<span class="sd">central limit theorem. The error of each histogram is calculated as the</span>
+<span class="sd">the sample standard deviation of the weighted input data.</span>
+
+<span class="sd">At large enough block sizes, the variance on the histogram estimates should</span>
+<span class="sd">plateau. This is because the histogram estimates from each block become</span>
+<span class="sd">uncorrelated and independent. This allows us to use the central limit theorem</span>
+<span class="sd">to calculate the true error estimates. Using the raw data before block</span>
+<span class="sd">averaging would underestimate the error, as the raw data is not independent.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Standard library</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="c1"># Third party packages</span>
+<span class="kn">import</span> <span class="nn">dask</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">integrate</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
+
+
+<span class="nd">@dask</span><span class="o">.</span><span class="n">delayed</span>
+<span class="k">def</span> <span class="nf">kde</span><span class="p">(</span>
+    <span class="n">block_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">bandwidth</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+    <span class="n">x_pts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the kernel density estimate (KDE) of the input data.</span>
+<span class="sd">    This function is used to parallelize the KDE calculation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    block_idx : int</span>
+<span class="sd">        Index of the block to calculate the KDE for.</span>
+<span class="sd">    block_size : int</span>
+<span class="sd">        Size of the block to calculate the KDE for.</span>
+<span class="sd">    bandwidth : float</span>
+<span class="sd">        Bandwidth of the KDE.</span>
+<span class="sd">    data : np.array</span>
+<span class="sd">        Array of data to calculate the KDE for.</span>
+<span class="sd">    x_pts : np.array</span>
+<span class="sd">        Array of x points to evaluate the KDE at.</span>
+<span class="sd">    weights : np.array, optional</span>
+<span class="sd">        Array of weights for each data point. This should be a 1D array.</span>
+<span class="sd">        If not specified, the data will be assumed to be unweighted.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    hist : np.array</span>
+<span class="sd">        Array of the KDE evaluated at the x points.</span>
+<span class="sd">    weight_norm : float</span>
+<span class="sd">        Sum of the weights for the block.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># index of data to use for this block</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">block_idx</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">,</span> <span class="p">(</span><span class="n">block_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">)</span>
+
+    <span class="c1"># calculate bandwidth for this block</span>
+    <span class="k">if</span> <span class="n">bandwidth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">bandwidth_block</span> <span class="o">=</span> <span class="n">bandwidth</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">idxs</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bandwidth: </span><span class="si">{</span><span class="n">bandwidth</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Block Index: </span><span class="si">{</span><span class="n">block_idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Block Size: </span><span class="si">{</span><span class="n">block_size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Indices: </span><span class="si">{</span><span class="n">idxs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bandwidth_block</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># create gaussian kde object and fit data</span>
+    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gkde_obj</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">gaussian_kde</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">idxs</span><span class="p">],</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">[</span><span class="n">idxs</span><span class="p">],</span> <span class="n">bw_method</span><span class="o">=</span><span class="n">bandwidth_block</span>
+        <span class="p">)</span>
+        <span class="n">hist</span> <span class="o">=</span> <span class="n">gkde_obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">x_pts</span><span class="p">)</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">idxs</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gkde_obj</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">gaussian_kde</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">idxs</span><span class="p">],</span> <span class="n">bw_method</span><span class="o">=</span><span class="n">bandwidth_block</span><span class="p">)</span>
+        <span class="n">hist</span> <span class="o">=</span> <span class="n">gkde_obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">x_pts</span><span class="p">)</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># normalize kde</span>
+    <span class="n">integral</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">simps</span><span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x_pts</span><span class="p">)</span>
+    <span class="n">hist</span> <span class="o">/=</span> <span class="n">integral</span>
+
+    <span class="k">return</span> <span class="n">hist</span><span class="p">,</span> <span class="n">norm</span>
+
+
+<span class="nd">@dask</span><span class="o">.</span><span class="n">delayed</span>
+<span class="k">def</span> <span class="nf">histogram</span><span class="p">(</span>
+    <span class="n">block_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+    <span class="n">bins</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the histogram of the input data. This function is used to</span>
+<span class="sd">    parallelize the histogram calculation. The histogram is normalized to be a</span>
+<span class="sd">    probability density.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    block_idx : int</span>
+<span class="sd">        Index of the block to calculate the histogram for.</span>
+<span class="sd">    block_size : int</span>
+<span class="sd">        Size of the block to calculate the histogram for.</span>
+<span class="sd">    data : np.array</span>
+<span class="sd">        Array of data to calculate the histogram for.</span>
+<span class="sd">    bins : np.array</span>
+<span class="sd">        Array of bin edges to use for the histogram.</span>
+<span class="sd">    weights : np.array, optional</span>
+<span class="sd">        Array of weights for each data point. This should be a 1D array.</span>
+<span class="sd">        If not specified, the data will be assumed to be unweighted.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    hist : np.array</span>
+<span class="sd">        Array of the histogram evaluated at the x points.</span>
+<span class="sd">    weight_norm : float</span>
+<span class="sd">        Sum of the weights for the block.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># index of data to use for this block</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">block_idx</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">,</span> <span class="p">(</span><span class="n">block_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">)</span>
+
+    <span class="c1"># calculate normalized histogram</span>
+    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">hist</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">idxs</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">[</span><span class="n">idxs</span><span class="p">],</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">idxs</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">hist</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">idxs</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">hist</span><span class="p">,</span> <span class="n">norm</span>
+
+
+<div class="viewcode-block" id="BlockError"><a class="viewcode-back" href="../../stats.block_error.html#stats.block_error.BlockError">[docs]</a><span class="k">class</span> <span class="nc">BlockError</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Methods to perform block average analysis on input data. This allows for</span>
+<span class="sd">    better estimation of error bars on correlated data, which is extremely</span>
+<span class="sd">    common in MD simulations.</span>
+
+<span class="sd">    The initializer of this class takes in a pandas DataFrame containing the</span>
+<span class="sd">    collective variables and the user specified labels for the columns</span>
+<span class="sd">    containing the data and respective weights. The class can be extended to</span>
+<span class="sd">    take in numpy arrays of data directly, but the current implementation takes</span>
+<span class="sd">    advantage of the additional tools in pandas.</span>
+
+<span class="sd">    NOTE: If using biased simulation data, the weights should be the exponential</span>
+<span class="sd">    of the bias. For better numerical stability, before taking the exponential,</span>
+<span class="sd">    subtract the maximum bias from all the biases. This results in the</span>
+<span class="sd">    exponential of the bias being less than 1.</span>
+
+<span class="sd">    The static block averaging methods could be generalized to work for</span>
+<span class="sd">    arbitrary dimensions. However, the methods are currently only implemented</span>
+<span class="sd">    for 1D.</span>
+
+<span class="sd">    Output histograms are properly normalized to be probability density and</span>
+<span class="sd">    energy calculations are in units of thermal energy (kT). Distributions</span>
+<span class="sd">    can be calculated using discrete histogram bins or a kernel density</span>
+<span class="sd">    estimator (KDE). The KDE is calculated using the Gaussian kernel.</span>
+
+<span class="sd">    FUTURE: Implement 2D block average error analysis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">block_sizes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">x_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">y_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">weights</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize BlockAverage object. Input data is a pandas DataFrame. Users</span>
+<span class="sd">        should specify the names of the columns corresponding to CVs to perform</span>
+<span class="sd">        the block average analysis on them as well as the column containing</span>
+<span class="sd">        the weights of each data point.</span>
+
+<span class="sd">        For Plumed bias output, the weights column should be the exponential of</span>
+<span class="sd">        the energetic bias divided by thermal energy. If data points are</span>
+<span class="sd">        unweighted, add a column of ones to the DataFrame.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        block_sizes : np.array</span>
+<span class="sd">            Array of block sizes to use for block averaging. Each block size</span>
+<span class="sd">            should be an integer. The block size should be less than the</span>
+<span class="sd">            length of the input data.</span>
+<span class="sd">        x_data : np.array</span>
+<span class="sd">            Array of data to perform block averaging on. This should be a 1D</span>
+<span class="sd">            array.</span>
+<span class="sd">        y_data : np.array, optional</span>
+<span class="sd">            Array of data to perform block averaging on. This should be a 1D</span>
+<span class="sd">            array. If not specified, the data will be assumed to be univariate.</span>
+<span class="sd">        weights : np.array, optional</span>
+<span class="sd">            Array of weights for each data point. This should be a 1D array.</span>
+<span class="sd">            If not specified, the data will be assumed to be unweighted.</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            If True, print debug messages. Default is False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># class logger</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;BlockError&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initializing BlockError class&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;verbose : </span><span class="si">{</span><span class="n">verbose</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;x_data must have at least one element&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">block_sizes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_data</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;block_sizes must be less than length of x_data&quot;</span><span class="p">)</span>
+
+        <span class="c1"># save input data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">block_sizes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="n">block_sizes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="n">x_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="n">y_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="n">weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weighted_data</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">True</span>
+
+        <span class="c1"># output data structures</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># ignore divide by zero warnings</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">RuntimeWarning</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BlockError.x_val"><a class="viewcode-back" href="../../stats.block_error.html#stats.block_error.BlockError.x_val">[docs]</a>    <span class="k">def</span> <span class="nf">x_val</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the block average and error of the value of the input</span>
+<span class="sd">        values of the x data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        x_mean : np.array</span>
+<span class="sd">            Array of block average values of the input x data.</span>
+<span class="sd">        x_err : np.array</span>
+<span class="sd">            Array of block average standard errors of the input x data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># output data structures</span>
+        <span class="n">x_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block_sizes</span><span class="p">)])</span>
+        <span class="n">x_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">x_mean</span><span class="p">)</span>
+
+        <span class="c1"># iterate over all block sizes</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block_sizes</span><span class="p">):</span>
+            <span class="n">n_block</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span> <span class="o">/</span> <span class="n">size</span><span class="p">)</span>
+
+            <span class="c1"># initialize variables for block average</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_block</span><span class="p">])</span>
+            <span class="n">norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_block</span><span class="p">])</span>
+
+            <span class="c1"># iterate over all data blocks to calculate statistics</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_block</span><span class="p">):</span>
+                <span class="n">idxs</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">j</span> <span class="o">*</span> <span class="n">size</span><span class="p">,</span> <span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">size</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">weighted_data</span><span class="p">:</span>
+                    <span class="n">vals</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">[</span><span class="n">idxs</span><span class="p">],</span> <span class="n">weights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">idxs</span><span class="p">])</span>
+                    <span class="n">norms</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">idxs</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">vals</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">[</span><span class="n">idxs</span><span class="p">])</span>
+                    <span class="n">norms</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="c1"># effective degrees of freedom prefactor</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">weighted_data</span><span class="p">:</span>
+                <span class="n">dof_eff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">norms</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">norms</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dof_eff</span> <span class="o">=</span> <span class="n">n_block</span>
+
+            <span class="c1"># bessel correction to sample data variance</span>
+            <span class="n">bessel_corr</span> <span class="o">=</span> <span class="n">dof_eff</span> <span class="o">/</span> <span class="p">(</span><span class="n">dof_eff</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span>
+
+            <span class="c1"># histogram weighted statistics</span>
+            <span class="n">val_wavg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">norms</span><span class="p">)</span>
+            <span class="n">val_wvar</span> <span class="o">=</span> <span class="n">bessel_corr</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">vals</span> <span class="o">-</span> <span class="n">val_wavg</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">norms</span>
+            <span class="p">)</span>
+            <span class="n">val_werr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">val_wvar</span> <span class="o">/</span> <span class="n">n_block</span><span class="p">)</span>
+
+            <span class="c1"># save data</span>
+            <span class="n">x_mean</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val_wavg</span>
+            <span class="n">x_err</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val_werr</span>
+
+        <span class="c1"># return data</span>
+        <span class="k">return</span> <span class="n">x_mean</span><span class="p">,</span> <span class="n">x_err</span></div>
+
+<div class="viewcode-block" id="BlockError.x_kde"><a class="viewcode-back" href="../../stats.block_error.html#stats.block_error.BlockError.x_kde">[docs]</a>    <span class="k">def</span> <span class="nf">x_kde</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">x_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_pts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">bandwidth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the block average and error of the value of the input</span>
+<span class="sd">        distribution of the x data using a kernel density estimator (KDE).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x_min : float, optional</span>
+<span class="sd">            Minimum value of the x data to use for the KDE. If not specified,</span>
+<span class="sd">            the minimum value of the input data will be used.</span>
+<span class="sd">        x_max : float, optional</span>
+<span class="sd">            Maximum value of the x data to use for the KDE. If not specified,</span>
+<span class="sd">            the maximum value of the input data will be used.</span>
+<span class="sd">        n_pts : int, optional</span>
+<span class="sd">            Number of points to use for the KDE. Default is 100.</span>
+<span class="sd">        bandwidth : float, optional</span>
+<span class="sd">            Bandwidth to use for the KDE. If not specified, the bandwidth will</span>
+<span class="sd">            be estimated using the Scott&#39;s rule of thumb.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        x_pts : np.array</span>
+<span class="sd">            Array of x values used for the KDE.</span>
+<span class="sd">        kde_mean : np.array</span>
+<span class="sd">            Array of block average values of the KDE.</span>
+<span class="sd">        kde_var : np.array</span>
+<span class="sd">            Array of block average variances of the KDE.</span>
+<span class="sd">        kde_err : np.array</span>
+<span class="sd">            Array of block average standard errors of the KDE.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># find min, max, and range of values for gaussian kde</span>
+        <span class="k">if</span> <span class="n">x_min</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x_max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span>
+        <span class="n">x_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="p">,</span> <span class="n">n_pts</span><span class="p">)</span>
+
+        <span class="c1"># drop nan values</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">weighted_data</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span>
+
+        <span class="c1"># output data structures</span>
+        <span class="n">kde_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block_sizes</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_pts</span><span class="p">)])</span>
+        <span class="n">kde_var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">kde_mean</span><span class="p">)</span>
+        <span class="n">kde_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">kde_mean</span><span class="p">)</span>
+
+        <span class="c1"># iterate over all block sizes</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block_sizes</span><span class="p">):</span>
+            <span class="n">n_block</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span> <span class="o">/</span> <span class="n">size</span><span class="p">)</span>
+
+            <span class="c1"># initialize variables for block average</span>
+            <span class="n">hists</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_block</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_pts</span><span class="p">)])</span>
+            <span class="n">norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_block</span><span class="p">])</span>
+
+            <span class="c1"># iterate over all data blocks to calculate kdes/norms</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="n">x_pts</span><span class="p">)</span>
+            <span class="n">blocks</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_block</span><span class="p">):</span>
+                <span class="n">task</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="n">kde</span><span class="p">)(</span><span class="n">j</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">bandwidth</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">pts</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+                <span class="n">blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+            <span class="n">blocks</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span>
+
+            <span class="c1"># compute results</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">blocks</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">norm</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
+                <span class="n">hists</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">hist</span>
+                <span class="n">norms</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">norm</span>
+
+            <span class="c1"># check that all norms are finite</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">norms</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Norms are not finite.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># effective degrees of freedom prefactor</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">weighted_data</span><span class="p">:</span>
+                <span class="n">dof_eff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">norms</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">norms</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dof_eff</span> <span class="o">=</span> <span class="n">n_block</span>
+
+            <span class="c1"># check that dof_eff is finite</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dof_eff</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Weight Norms: </span><span class="si">{</span><span class="n">norms</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Numerator: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">norms</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Denominator: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">norms</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;10 largest weights:</span><span class="se">\n</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)[</span><span class="o">-</span><span class="mi">10</span><span class="p">:][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Effective degrees of freedom is not finite.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># bessel correction to sample data variance</span>
+            <span class="n">bessel_corr</span> <span class="o">=</span> <span class="n">dof_eff</span> <span class="o">/</span> <span class="p">(</span><span class="n">dof_eff</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span>
+
+            <span class="c1"># histogram weighted statistics</span>
+            <span class="n">kde_mean</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">hists</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">norms</span><span class="p">)</span>
+            <span class="n">kde_var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">bessel_corr</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">hists</span> <span class="o">-</span> <span class="n">kde_mean</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">norms</span>
+            <span class="p">)</span>
+            <span class="n">kde_err</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">kde_var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_block</span><span class="p">)</span>
+
+        <span class="c1"># return data</span>
+        <span class="k">return</span> <span class="n">x_pts</span><span class="p">,</span> <span class="n">kde_mean</span><span class="p">,</span> <span class="n">kde_var</span><span class="p">,</span> <span class="n">kde_err</span></div>
+
+<div class="viewcode-block" id="BlockError.x_kde_fes"><a class="viewcode-back" href="../../stats.block_error.html#stats.block_error.BlockError.x_kde_fes">[docs]</a>    <span class="k">def</span> <span class="nf">x_kde_fes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">x_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_pts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">bandwidth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the block average and error of the free energy surface</span>
+<span class="sd">        of the input distribution of the x data using a kernel density</span>
+<span class="sd">        estimator (KDE). This function calls the x_kde function to calculate</span>
+<span class="sd">        the block average and error of the KDE and then transforms the KDE</span>
+<span class="sd">        distribution into a free energy surface.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x_min : float, optional</span>
+<span class="sd">            Minimum value of the x data to use for the KDE. If not specified,</span>
+<span class="sd">            the minimum value of the input data will be used.</span>
+<span class="sd">        x_max : float, optional</span>
+<span class="sd">            Maximum value of the x data to use for the KDE. If not specified,</span>
+<span class="sd">            the maximum value of the input data will be used.</span>
+<span class="sd">        n_pts : int, optional</span>
+<span class="sd">            Number of points to use for the KDE. Default is 100.</span>
+<span class="sd">        bandwidth : float, optional</span>
+<span class="sd">            Bandwidth to use for the KDE. If not specified, the bandwidth will</span>
+<span class="sd">            be estimated using the Scott&#39;s rule of thumb.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        x_pts : np.array</span>
+<span class="sd">            Array of x values used for the KDE.</span>
+<span class="sd">        fes_mean : np.array</span>
+<span class="sd">            Array of block average values of the free energy surface.</span>
+<span class="sd">        fes_var : np.array</span>
+<span class="sd">            Array of block average variances of the free energy surface.</span>
+<span class="sd">        fes_err : np.array</span>
+<span class="sd">            Array of block average standard errors of the free energy surface.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># calculate the KDE distribution</span>
+        <span class="n">x_pts</span><span class="p">,</span> <span class="n">kde_mean</span><span class="p">,</span> <span class="n">kde_var</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_kde</span><span class="p">(</span>
+            <span class="n">x_min</span><span class="o">=</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="o">=</span><span class="n">x_max</span><span class="p">,</span> <span class="n">n_pts</span><span class="o">=</span><span class="n">n_pts</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="n">bandwidth</span>
+        <span class="p">)</span>
+
+        <span class="c1"># output data structures</span>
+        <span class="n">fes_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">kde_mean</span><span class="p">)</span>
+        <span class="n">fes_var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">kde_mean</span><span class="p">)</span>
+        <span class="n">fes_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">kde_mean</span><span class="p">)</span>
+
+        <span class="c1"># iterate over all block sizes</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block_sizes</span><span class="p">):</span>
+            <span class="n">n_block</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span> <span class="o">/</span> <span class="n">size</span><span class="p">)</span>
+
+            <span class="c1"># free energy surface weighted statistics</span>
+            <span class="c1"># simply propagate the error in the histogram by leading-order</span>
+            <span class="c1"># Taylor series expansion of the natural logarithm</span>
+            <span class="c1"># :SOURCE: https://physics.stackexchange.com/a/527268</span>
+            <span class="n">fes_mean</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">kde_mean</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">fes_mean</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">fes_mean</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>  <span class="c1"># shift to zero minimum</span>
+            <span class="n">fes_var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">kde_var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">kde_mean</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">fes_err</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">fes_var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_block</span><span class="p">)</span>
+
+        <span class="c1"># return data</span>
+        <span class="k">return</span> <span class="n">x_pts</span><span class="p">,</span> <span class="n">fes_mean</span><span class="p">,</span> <span class="n">fes_var</span><span class="p">,</span> <span class="n">fes_err</span></div>
+
+<div class="viewcode-block" id="BlockError.x_histo"><a class="viewcode-back" href="../../stats.block_error.html#stats.block_error.BlockError.x_histo">[docs]</a>    <span class="k">def</span> <span class="nf">x_histo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">return_edges</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the block average and error of the histogram of the input</span>
+<span class="sd">        distribution of the x data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bins : int or list or np.array, optional</span>
+<span class="sd">            Number of bins to use for the histogram. If a list or np.array is</span>
+<span class="sd">            provided, the values will be used as the bin edges.</span>
+<span class="sd">        return_edges : bool, optional</span>
+<span class="sd">            If True, the bin edges will be returned.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        centers : np.array</span>
+<span class="sd">            Array of histogram bin centers.</span>
+<span class="sd">        histo_mean : np.array</span>
+<span class="sd">            Array of block average values of the histogram.</span>
+<span class="sd">        histo_var : np.array</span>
+<span class="sd">            Array of block average variances of the histogram.</span>
+<span class="sd">        histo_err : np.array</span>
+<span class="sd">            Array of block average standard errors of the histogram.</span>
+<span class="sd">        edges : np.array, optional</span>
+<span class="sd">            Array of histogram bin edges. Only returned if return_edges is</span>
+<span class="sd">            True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># find min, max, and range of values for histogram bin</span>
+        <span class="n">x_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span>
+        <span class="n">h_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">x_range</span>
+        <span class="n">h_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">x_range</span>
+
+        <span class="c1"># check if bins is a list or np.array and set histogram values</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="n">h_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">h_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">h_min</span><span class="p">,</span> <span class="n">h_max</span><span class="p">,</span> <span class="n">bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">h_centers</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">h_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+        <span class="c1"># output data structures</span>
+        <span class="n">histo_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block_sizes</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">h_edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">histo_var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">histo_mean</span><span class="p">)</span>
+        <span class="n">histo_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">histo_mean</span><span class="p">)</span>
+
+        <span class="c1"># iterate over all block sizes</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block_sizes</span><span class="p">):</span>
+            <span class="n">n_block</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span> <span class="o">/</span> <span class="n">size</span><span class="p">)</span>
+
+            <span class="c1"># initialize variables for block average</span>
+            <span class="n">hists</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_block</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">h_edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_block</span><span class="p">])</span>
+
+            <span class="c1"># iterate over all data blocks to calculate histograms/norms</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="n">h_edges</span><span class="p">)</span>
+            <span class="n">blocks</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_block</span><span class="p">):</span>
+                <span class="n">task</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="n">histogram</span><span class="p">)(</span><span class="n">j</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+                <span class="n">blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+            <span class="n">blocks</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span>
+
+            <span class="c1"># compute results</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">blocks</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">norm</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
+                <span class="n">hists</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">hist</span>
+                <span class="n">norms</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">norm</span>
+
+            <span class="c1"># effective degrees of freedom prefactor</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">weighted_data</span><span class="p">:</span>
+                <span class="n">dof_eff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">norms</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">norms</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dof_eff</span> <span class="o">=</span> <span class="n">n_block</span>
+
+            <span class="c1"># bessel correction to sample data variance</span>
+            <span class="n">bessel_corr</span> <span class="o">=</span> <span class="n">dof_eff</span> <span class="o">/</span> <span class="p">(</span><span class="n">dof_eff</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span>
+
+            <span class="c1"># histogram weighted statistics</span>
+            <span class="n">histo_wavg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">hists</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">norms</span><span class="p">)</span>
+            <span class="n">histo_wvar</span> <span class="o">=</span> <span class="n">bessel_corr</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">hists</span> <span class="o">-</span> <span class="n">histo_wavg</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">norms</span>
+            <span class="p">)</span>
+            <span class="n">histo_werr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">histo_wvar</span> <span class="o">/</span> <span class="n">n_block</span><span class="p">)</span>
+
+            <span class="c1"># save data</span>
+            <span class="n">histo_mean</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">histo_wavg</span>
+            <span class="n">histo_var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">histo_wvar</span>
+            <span class="n">histo_err</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">histo_werr</span>
+
+        <span class="c1"># return data</span>
+        <span class="k">if</span> <span class="n">return_edges</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">h_centers</span><span class="p">,</span> <span class="n">histo_mean</span><span class="p">,</span> <span class="n">histo_var</span><span class="p">,</span> <span class="n">histo_err</span><span class="p">,</span> <span class="n">h_edges</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">h_centers</span><span class="p">,</span> <span class="n">histo_mean</span><span class="p">,</span> <span class="n">histo_var</span><span class="p">,</span> <span class="n">histo_err</span></div>
+
+<div class="viewcode-block" id="BlockError.x_histo_fes"><a class="viewcode-back" href="../../stats.block_error.html#stats.block_error.BlockError.x_histo_fes">[docs]</a>    <span class="k">def</span> <span class="nf">x_histo_fes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">return_edges</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the block average and error of the free energy surface</span>
+<span class="sd">        of the input distribution of the x data using discrete histograms.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bins : int or list or np.array, optional</span>
+<span class="sd">            Number of bins to use for the histogram. If a list or np.array is</span>
+<span class="sd">            provided, the values will be used as the bin edges.</span>
+<span class="sd">        return_edges : bool, optional</span>
+<span class="sd">            If True, the bin edges will be returned.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        centers : np.array</span>
+<span class="sd">            Array of histogram bin centers.</span>
+<span class="sd">        fes_mean : np.array</span>
+<span class="sd">            Array of block average values of the free energy surface.</span>
+<span class="sd">        fes_var : np.array</span>
+<span class="sd">            Array of block average variances of the free energy surface.</span>
+<span class="sd">        fes_err : np.array</span>
+<span class="sd">            Array of block average standard errors of the free energy surface.</span>
+<span class="sd">        edges : np.array, optional</span>
+<span class="sd">            Array of histogram bin edges. Only returned if return_edges is</span>
+<span class="sd">            True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># calculate histogram of x data</span>
+        <span class="n">h_centers</span><span class="p">,</span> <span class="n">histo_mean</span><span class="p">,</span> <span class="n">histo_var</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">h_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_histo</span><span class="p">(</span>
+            <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">return_edges</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="c1"># output data structures</span>
+        <span class="n">fes_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">histo_mean</span><span class="p">)</span>
+        <span class="n">fes_var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">histo_mean</span><span class="p">)</span>
+        <span class="n">fes_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">histo_mean</span><span class="p">)</span>
+
+        <span class="c1"># iterate over all block sizes</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block_sizes</span><span class="p">):</span>
+            <span class="n">n_block</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span> <span class="o">/</span> <span class="n">size</span><span class="p">)</span>
+
+            <span class="c1"># free energy surface weighted statistics</span>
+            <span class="c1"># simply propagate the error in the histogram by leading-order</span>
+            <span class="c1"># Taylor series expansion of the natural logarithm</span>
+            <span class="c1"># :SOURCE: https://physics.stackexchange.com/a/527268</span>
+            <span class="n">fes_mean</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">histo_mean</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">fes_mean</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">histo_mean</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>  <span class="c1"># shift to zero minimum</span>
+            <span class="n">fes_var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">histo_var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">histo_mean</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">fes_err</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">histo_var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_block</span><span class="p">)</span>
+
+        <span class="c1"># return data</span>
+        <span class="k">if</span> <span class="n">return_edges</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">h_centers</span><span class="p">,</span> <span class="n">fes_mean</span><span class="p">,</span> <span class="n">fes_var</span><span class="p">,</span> <span class="n">fes_err</span><span class="p">,</span> <span class="n">h_edges</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">h_centers</span><span class="p">,</span> <span class="n">fes_mean</span><span class="p">,</span> <span class="n">fes_var</span><span class="p">,</span> <span class="n">fes_err</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Alec Glisman.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

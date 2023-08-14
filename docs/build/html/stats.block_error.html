@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>stats.block_error module &mdash; Analysis Two Chain PAA v2.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="stats.correlations module" href="stats.correlations.html" />
+    <link rel="prev" title="stats package" href="stats.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Analysis Two Chain PAA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="analysis_helpers.html">analysis_helpers package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colvar_parallel.html">colvar_parallel package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">figures package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="stats.html">stats package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="stats.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">stats.block_error module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#stats.block_error.BlockError"><code class="docutils literal notranslate"><span class="pre">BlockError</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="stats.correlations.html">stats.correlations module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="stats.html#module-stats">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">utils package</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Key files:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="colvar_parallel.base.html">colvar_parallel.base module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">stats.block_error module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#stats.block_error.BlockError"><code class="docutils literal notranslate"><span class="pre">BlockError</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#stats.block_error.BlockError.x_histo"><code class="docutils literal notranslate"><span class="pre">BlockError.x_histo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stats.block_error.BlockError.x_histo_fes"><code class="docutils literal notranslate"><span class="pre">BlockError.x_histo_fes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stats.block_error.BlockError.x_kde"><code class="docutils literal notranslate"><span class="pre">BlockError.x_kde()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stats.block_error.BlockError.x_kde_fes"><code class="docutils literal notranslate"><span class="pre">BlockError.x_kde_fes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stats.block_error.BlockError.x_val"><code class="docutils literal notranslate"><span class="pre">BlockError.x_val()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">External links:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://www.dask.org/get-started">Dask</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/quickstart.html">MDAnalysis Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/README.html">MDAnalysis Examples</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis_modules.html">MDAnalysis Analysis Modules</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://www.plumed.org/doc-v2.8/user-doc/html/tutorials.html">Plumed Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Analysis Two Chain PAA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="stats.html">stats package</a></li>
+      <li class="breadcrumb-item active">stats.block_error module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/stats.block_error.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-stats.block_error">
+<span id="stats-block-error-module"></span><h1>stats.block_error module<a class="headerlink" href="#module-stats.block_error" title="Permalink to this heading"></a></h1>
+<p>Author: Alec Glisman (GitHub: &#64;alec-glisman)
+Date: 2023-03-14
+Description: Script contains methods to block average data and estimate
+error/decorrelation time. Calculations are accelerated using Dask.</p>
+<p>A good review/explanation of the following code can be found in the Plumed
+Masterclass 21.2: Statistical errors in MD, Exercise 8: Weighted averages.
+<a class="reference external" href="https://www.plumed.org/doc-v2.7/user-doc/html/masterclass-21-2.html#masterclass-21-2-ex-8">https://www.plumed.org/doc-v2.7/user-doc/html/masterclass-21-2.html#masterclass-21-2-ex-8</a></p>
+<p>There exists a second tutorial in the Plumed documentation as well.
+<a class="reference external" href="https://www.plumed.org/doc-v2.7/user-doc/html/trieste-2.html">https://www.plumed.org/doc-v2.7/user-doc/html/trieste-2.html</a></p>
+<p>Further information on block averaging is found in the Plumed documentation
+for the histogram module.
+<a class="reference external" href="https://www.plumed.org/doc-v2.7/user-doc/html/_h_i_s_t_o_g_r_a_m.html">https://www.plumed.org/doc-v2.7/user-doc/html/_h_i_s_t_o_g_r_a_m.html</a></p>
+<p>We estimate the overall histogram of the collective variables (CVs) by
+constructing independent histograms from each block of data. We construct
+the final histogram as a weighted average of the block histograms with the
+input weights. If no bias is applied to the MD simulation, the weights are
+all unity and the final histogram is the simple average of the block
+histograms. The final histogram is not a function of the block size.</p>
+<p>However, the error of the final histogram is a function of the block size.
+This is caused by correlations between data points, which invalidates the
+central limit theorem. The error of each histogram is calculated as the
+the sample standard deviation of the weighted input data.</p>
+<p>At large enough block sizes, the variance on the histogram estimates should
+plateau. This is because the histogram estimates from each block become
+uncorrelated and independent. This allows us to use the central limit theorem
+to calculate the true error estimates. Using the raw data before block
+averaging would underestimate the error, as the raw data is not independent.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="stats.block_error.BlockError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stats.block_error.</span></span><span class="sig-name descname"><span class="pre">BlockError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block_sizes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/stats/block_error.html#BlockError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#stats.block_error.BlockError" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Methods to perform block average analysis on input data. This allows for
+better estimation of error bars on correlated data, which is extremely
+common in MD simulations.</p>
+<p>The initializer of this class takes in a pandas DataFrame containing the
+collective variables and the user specified labels for the columns
+containing the data and respective weights. The class can be extended to
+take in numpy arrays of data directly, but the current implementation takes
+advantage of the additional tools in pandas.</p>
+<p>NOTE: If using biased simulation data, the weights should be the exponential
+of the bias. For better numerical stability, before taking the exponential,
+subtract the maximum bias from all the biases. This results in the
+exponential of the bias being less than 1.</p>
+<p>The static block averaging methods could be generalized to work for
+arbitrary dimensions. However, the methods are currently only implemented
+for 1D.</p>
+<p>Output histograms are properly normalized to be probability density and
+energy calculations are in units of thermal energy (kT). Distributions
+can be calculated using discrete histogram bins or a kernel density
+estimator (KDE). The KDE is calculated using the Gaussian kernel.</p>
+<p>FUTURE: Implement 2D block average error analysis.</p>
+<p>Initialize BlockAverage object. Input data is a pandas DataFrame. Users
+should specify the names of the columns corresponding to CVs to perform
+the block average analysis on them as well as the column containing
+the weights of each data point.</p>
+<p>For Plumed bias output, the weights column should be the exponential of
+the energetic bias divided by thermal energy. If data points are
+unweighted, add a column of ones to the DataFrame.</p>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this heading"></a></h2>
+<dl class="simple">
+<dt>block_sizes<span class="classifier">np.array</span></dt><dd><p>Array of block sizes to use for block averaging. Each block size
+should be an integer. The block size should be less than the
+length of the input data.</p>
+</dd>
+<dt>x_data<span class="classifier">np.array</span></dt><dd><p>Array of data to perform block averaging on. This should be a 1D
+array.</p>
+</dd>
+<dt>y_data<span class="classifier">np.array, optional</span></dt><dd><p>Array of data to perform block averaging on. This should be a 1D
+array. If not specified, the data will be assumed to be univariate.</p>
+</dd>
+<dt>weights<span class="classifier">np.array, optional</span></dt><dd><p>Array of weights for each data point. This should be a 1D array.
+If not specified, the data will be assumed to be unweighted.</p>
+</dd>
+<dt>verbose<span class="classifier">bool, optional</span></dt><dd><p>If True, print debug messages. Default is False.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="stats.block_error.BlockError.x_histo">
+<span class="sig-name descname"><span class="pre">x_histo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/stats/block_error.html#BlockError.x_histo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#stats.block_error.BlockError.x_histo" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the block average and error of the histogram of the input
+distribution of the x data.</p>
+<section id="id1">
+<h3>Parameters<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>bins<span class="classifier">int or list or np.array, optional</span></dt><dd><p>Number of bins to use for the histogram. If a list or np.array is
+provided, the values will be used as the bin edges.</p>
+</dd>
+<dt>return_edges<span class="classifier">bool, optional</span></dt><dd><p>If True, the bin edges will be returned.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>centers<span class="classifier">np.array</span></dt><dd><p>Array of histogram bin centers.</p>
+</dd>
+<dt>histo_mean<span class="classifier">np.array</span></dt><dd><p>Array of block average values of the histogram.</p>
+</dd>
+<dt>histo_var<span class="classifier">np.array</span></dt><dd><p>Array of block average variances of the histogram.</p>
+</dd>
+<dt>histo_err<span class="classifier">np.array</span></dt><dd><p>Array of block average standard errors of the histogram.</p>
+</dd>
+<dt>edges<span class="classifier">np.array, optional</span></dt><dd><p>Array of histogram bin edges. Only returned if return_edges is
+True.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stats.block_error.BlockError.x_histo_fes">
+<span class="sig-name descname"><span class="pre">x_histo_fes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">numpy.array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/stats/block_error.html#BlockError.x_histo_fes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#stats.block_error.BlockError.x_histo_fes" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the block average and error of the free energy surface
+of the input distribution of the x data using discrete histograms.</p>
+<section id="id2">
+<h3>Parameters<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>bins<span class="classifier">int or list or np.array, optional</span></dt><dd><p>Number of bins to use for the histogram. If a list or np.array is
+provided, the values will be used as the bin edges.</p>
+</dd>
+<dt>return_edges<span class="classifier">bool, optional</span></dt><dd><p>If True, the bin edges will be returned.</p>
+</dd>
+</dl>
+</section>
+<section id="id3">
+<h3>Returns<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>centers<span class="classifier">np.array</span></dt><dd><p>Array of histogram bin centers.</p>
+</dd>
+<dt>fes_mean<span class="classifier">np.array</span></dt><dd><p>Array of block average values of the free energy surface.</p>
+</dd>
+<dt>fes_var<span class="classifier">np.array</span></dt><dd><p>Array of block average variances of the free energy surface.</p>
+</dd>
+<dt>fes_err<span class="classifier">np.array</span></dt><dd><p>Array of block average standard errors of the free energy surface.</p>
+</dd>
+<dt>edges<span class="classifier">np.array, optional</span></dt><dd><p>Array of histogram bin edges. Only returned if return_edges is
+True.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stats.block_error.BlockError.x_kde">
+<span class="sig-name descname"><span class="pre">x_kde</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_pts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">numpy.array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/stats/block_error.html#BlockError.x_kde"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#stats.block_error.BlockError.x_kde" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the block average and error of the value of the input
+distribution of the x data using a kernel density estimator (KDE).</p>
+<section id="id4">
+<h3>Parameters<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>x_min<span class="classifier">float, optional</span></dt><dd><p>Minimum value of the x data to use for the KDE. If not specified,
+the minimum value of the input data will be used.</p>
+</dd>
+<dt>x_max<span class="classifier">float, optional</span></dt><dd><p>Maximum value of the x data to use for the KDE. If not specified,
+the maximum value of the input data will be used.</p>
+</dd>
+<dt>n_pts<span class="classifier">int, optional</span></dt><dd><p>Number of points to use for the KDE. Default is 100.</p>
+</dd>
+<dt>bandwidth<span class="classifier">float, optional</span></dt><dd><p>Bandwidth to use for the KDE. If not specified, the bandwidth will
+be estimated using the Scott’s rule of thumb.</p>
+</dd>
+</dl>
+</section>
+<section id="id5">
+<h3>Returns<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>x_pts<span class="classifier">np.array</span></dt><dd><p>Array of x values used for the KDE.</p>
+</dd>
+<dt>kde_mean<span class="classifier">np.array</span></dt><dd><p>Array of block average values of the KDE.</p>
+</dd>
+<dt>kde_var<span class="classifier">np.array</span></dt><dd><p>Array of block average variances of the KDE.</p>
+</dd>
+<dt>kde_err<span class="classifier">np.array</span></dt><dd><p>Array of block average standard errors of the KDE.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stats.block_error.BlockError.x_kde_fes">
+<span class="sig-name descname"><span class="pre">x_kde_fes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_pts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">numpy.array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/stats/block_error.html#BlockError.x_kde_fes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#stats.block_error.BlockError.x_kde_fes" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the block average and error of the free energy surface
+of the input distribution of the x data using a kernel density
+estimator (KDE). This function calls the x_kde function to calculate
+the block average and error of the KDE and then transforms the KDE
+distribution into a free energy surface.</p>
+<section id="id6">
+<h3>Parameters<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>x_min<span class="classifier">float, optional</span></dt><dd><p>Minimum value of the x data to use for the KDE. If not specified,
+the minimum value of the input data will be used.</p>
+</dd>
+<dt>x_max<span class="classifier">float, optional</span></dt><dd><p>Maximum value of the x data to use for the KDE. If not specified,
+the maximum value of the input data will be used.</p>
+</dd>
+<dt>n_pts<span class="classifier">int, optional</span></dt><dd><p>Number of points to use for the KDE. Default is 100.</p>
+</dd>
+<dt>bandwidth<span class="classifier">float, optional</span></dt><dd><p>Bandwidth to use for the KDE. If not specified, the bandwidth will
+be estimated using the Scott’s rule of thumb.</p>
+</dd>
+</dl>
+</section>
+<section id="id7">
+<h3>Returns<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>x_pts<span class="classifier">np.array</span></dt><dd><p>Array of x values used for the KDE.</p>
+</dd>
+<dt>fes_mean<span class="classifier">np.array</span></dt><dd><p>Array of block average values of the free energy surface.</p>
+</dd>
+<dt>fes_var<span class="classifier">np.array</span></dt><dd><p>Array of block average variances of the free energy surface.</p>
+</dd>
+<dt>fes_err<span class="classifier">np.array</span></dt><dd><p>Array of block average standard errors of the free energy surface.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stats.block_error.BlockError.x_val">
+<span class="sig-name descname"><span class="pre">x_val</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">numpy.array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/stats/block_error.html#BlockError.x_val"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#stats.block_error.BlockError.x_val" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the block average and error of the value of the input
+values of the x data.</p>
+<section id="id8">
+<h3>Returns<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>x_mean<span class="classifier">np.array</span></dt><dd><p>Array of block average values of the input x data.</p>
+</dd>
+<dt>x_err<span class="classifier">np.array</span></dt><dd><p>Array of block average standard errors of the input x data.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="stats.html" class="btn btn-neutral float-left" title="stats package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="stats.correlations.html" class="btn btn-neutral float-right" title="stats.correlations module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Alec Glisman.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

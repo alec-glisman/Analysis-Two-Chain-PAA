@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>colvar_parallel.rmsdpair &mdash; Analysis Two Chain PAA v2.0.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Analysis Two Chain PAA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../analysis_helpers.html">analysis_helpers package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../colvar_parallel.html">colvar_parallel package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../figures.html">figures package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../stats.html">stats package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">utils package</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Key files:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../colvar_parallel.base.html">colvar_parallel.base module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../stats.block_error.html">stats.block_error module</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">External links:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://www.dask.org/get-started">Dask</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/quickstart.html">MDAnalysis Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/README.html">MDAnalysis Examples</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis_modules.html">MDAnalysis Analysis Modules</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://www.plumed.org/doc-v2.8/user-doc/html/tutorials.html">Plumed Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Analysis Two Chain PAA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">colvar_parallel.rmsdpair</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for colvar_parallel.rmsdpair</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- Mode: python; tab-width: 4; indent-tabs-mode:nil; coding:utf-8 -*-</span>
+<span class="c1"># vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4</span>
+<span class="c1">#</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Calculating All Pairwise Root-Mean-Square Deviations (RMSD) --- :mod:`colvar_parallel.rmsdpair`</span>
+<span class="sd">=====================================================================</span>
+
+<span class="sd">This module contains parallel versions of analysis tasks in</span>
+<span class="sd">:mod:`MDAnalysis.analysis.rms.RMSD`.</span>
+
+<span class="sd">See Also</span>
+<span class="sd">--------</span>
+<span class="sd">:mod:`MDAnalysis.analysis.rms`</span>
+
+
+<span class="sd">.. autoclass:: RMSD</span>
+<span class="sd">    :members:</span>
+<span class="sd">    :inherited-members:</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># Standard library</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="c1"># External dependencies</span>
+<span class="kn">from</span> <span class="nn">MDAnalysis.analysis</span> <span class="kn">import</span> <span class="n">rms</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="c1"># Internal dependencies</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">ParallelAnalysisBase</span>
+
+<span class="c1"># add local src directory to path</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="s2">&quot;src&quot;</span><span class="p">))</span>
+
+<span class="c1"># Local internal dependencies</span>
+<span class="kn">from</span> <span class="nn">utils.logs</span> <span class="kn">import</span> <span class="n">setup_logging</span>  <span class="c1"># noqa: E402</span>
+
+
+<div class="viewcode-block" id="RMSD"><a class="viewcode-back" href="../../colvar_parallel.rmsdpair.html#colvar_parallel.rmsdpair.RMSD">[docs]</a><span class="k">class</span> <span class="nc">RMSD</span><span class="p">(</span><span class="n">ParallelAnalysisBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Parallel RMSD analysis.</span>
+
+<span class="sd">    Optimally superimpose the coordinates in the</span>
+<span class="sd">    :class:`~MDAnalysis.core.groups.AtomGroup` `mobile` onto `ref` for</span>
+<span class="sd">    each frame in the trajectory of `mobile`, and calculate the time</span>
+<span class="sd">    series of the RMSD. The single frame calculation is performed with</span>
+<span class="sd">    :func:`MDAnalysis.analysis.rms.rmsd` (with ``superposition=True``</span>
+<span class="sd">    by default).</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rmsd : matrix</span>
+<span class="sd">          Contains the time series of the RMSD as a `TxT`</span>
+<span class="sd">          :class:`numpy.ndarray` array, where `T` is the number of</span>
+<span class="sd">          frames in the trajectory.</span>
+<span class="sd">    times : array</span>
+<span class="sd">          Contains the times of each frame in the trajectory as a</span>
+<span class="sd">          :class:`numpy.ndarray` array. The shape of this array is</span>
+<span class="sd">          `(T,)`.</span>
+<span class="sd">    frames : array</span>
+<span class="sd">            Contains the frame indices of each frame in the trajectory</span>
+<span class="sd">            as a :class:`numpy.ndarray` array. The shape of this array</span>
+<span class="sd">            is `(T,)`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mobile : AtomGroup</span>
+<span class="sd">         atoms that are optimally superimposed on `ref` before</span>
+<span class="sd">         the RMSD is calculated for all atoms. The coordinates</span>
+<span class="sd">         of `mobile` change with each frame in the trajectory.</span>
+<span class="sd">    ref : AtomGroup</span>
+<span class="sd">         fixed reference coordinates</span>
+<span class="sd">    superposition : bool, optional</span>
+<span class="sd">         ``True`` perform a RMSD-superposition, ``False`` only</span>
+<span class="sd">         calculates the RMSD. The default is ``True``.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    MDAnalysis.analysis.rms.RMSD</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    If you use trajectory data from simulations performed under *periodic</span>
+<span class="sd">    boundary conditions* then you **must make your molecules whole** before</span>
+<span class="sd">    performing RMSD calculations so that the centers of mass of the mobile and</span>
+<span class="sd">    reference structure are properly superimposed.</span>
+
+<span class="sd">    Run the analysis with :meth:`RMSD.run`, which stores the results</span>
+<span class="sd">    in the array :attr:`RMSD.rmsd`.</span>
+
+<span class="sd">    The root mean square deviation :math:`\rho(t)` of a group of :math:`N`</span>
+<span class="sd">    atoms relative to a reference structure as a function of time is</span>
+<span class="sd">    calculated as:</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \rho(t) = \sqrt{\frac{1}{N} \sum_{i=1}^N \left(\mathbf{x}_i(t)</span>
+<span class="sd">                        - \mathbf{x}_i^{\text{ref}}\right)^2}</span>
+
+<span class="sd">    The selected coordinates from `atomgroup` are optimally superimposed</span>
+<span class="sd">    (translation and rotation) on the `reference` coordinates at each time step</span>
+<span class="sd">    as to minimize the RMSD.</span>
+
+<span class="sd">    At the moment, this class has far fewer features than its serial</span>
+<span class="sd">    counterpart, :class:`MDAnalysis.analysis.rms.RMSD`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    In this example we will globally fit a protein to a reference</span>
+<span class="sd">    structure. The example is a DIMS trajectory of adenylate kinase, which</span>
+<span class="sd">    samples a large closed-to-open transition.</span>
+
+<span class="sd">    The trajectory is included in the MDAnalysis test data files. The data in</span>
+<span class="sd">    :attr:`RMSD.rmsd` is plotted with :func:`matplotlib.pyplot.plot`::</span>
+
+<span class="sd">        import MDAnalysis</span>
+<span class="sd">        from MDAnalysis.tests.datafiles import PSF, DCD, CRD</span>
+<span class="sd">        mobile = MDAnalysis.Universe(PSF,DCD).atoms</span>
+<span class="sd">        # reference closed AdK (1AKE) (with the default ref_frame=0)</span>
+<span class="sd">        ref = MDAnalysis.Universe(PSF,DCD).atoms</span>
+
+<span class="sd">        from colvar_parallel.rms import RMSD</span>
+
+<span class="sd">        R = RMSD(mobile, ref)</span>
+<span class="sd">        R.run()</span>
+
+<span class="sd">        import matplotlib.pyplot as plt</span>
+<span class="sd">        rmsd = R.rmsd.T[2]  # transpose makes it easier for plotting</span>
+<span class="sd">        time = rmsd[0]</span>
+<span class="sd">        fig = plt.figure(figsize=(4,4))</span>
+<span class="sd">        ax = fig.add_subplot(111)</span>
+<span class="sd">        ax.plot(time, rmsd,  label=&quot;all&quot;)</span>
+<span class="sd">        ax.legend(loc=&quot;best&quot;)</span>
+<span class="sd">        ax.set_xlabel(&quot;time (ps)&quot;)</span>
+<span class="sd">        ax.set_ylabel(r&quot;RMSD ($\\AA$)&quot;)</span>
+<span class="sd">        fig.savefig(&quot;rmsd_all_CORE_LID_NMP_ref1AKE.pdf&quot;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">mobile</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">superposition</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up the analysis.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mobile : AtomGroup</span>
+<span class="sd">            atoms that are optimally superimposed on `ref` before</span>
+<span class="sd">            the RMSD is calculated for all atoms. The coordinates</span>
+<span class="sd">            of `mobile` change with each frame in the trajectory.</span>
+<span class="sd">        ref : AtomGroup</span>
+<span class="sd">            fixed reference coordinates</span>
+<span class="sd">        label : str, optional</span>
+<span class="sd">            Text label for system.</span>
+<span class="sd">        superposition : bool, optional</span>
+<span class="sd">            ``True`` perform a RMSD-superposition, ``False`` only</span>
+<span class="sd">            calculates the RMSD. The default is ``True``.</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            ``True``: print progress bar to the screen; ``False``: no</span>
+<span class="sd">            progress bar. The default is ``False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">universe</span> <span class="o">=</span> <span class="n">mobile</span><span class="o">.</span><span class="n">universe</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">trajectory</span><span class="p">,</span> <span class="p">(</span><span class="n">mobile</span><span class="p">,),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;logs/</span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.log&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_pos</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">positions</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_superposition</span> <span class="o">=</span> <span class="n">superposition</span>
+
+        <span class="c1"># output data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dir_out</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;./mdanalysis_rmsdpair&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_df_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;rmsd_matrix_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_tag</span><span class="si">}</span><span class="s2">.parquet&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;df_filename: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_df_filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># set output data structures</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frame&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initialized RMSD analysis for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_tag</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RMSD._prepare"><a class="viewcode-back" href="../../colvar_parallel.rmsdpair.html#colvar_parallel.rmsdpair.RMSD._prepare">[docs]</a>    <span class="k">def</span> <span class="nf">_prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Prepare the analysis for execution.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Preparing RMSD analysis for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_tag</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># add frames to columns list</span>
+        <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trajectory</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;frame_</span><span class="si">{</span><span class="n">ts</span><span class="o">.</span><span class="n">frame</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RMSD._single_frame"><a class="viewcode-back" href="../../colvar_parallel.rmsdpair.html#colvar_parallel.rmsdpair.RMSD._single_frame">[docs]</a>    <span class="k">def</span> <span class="nf">_single_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx_frame</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Analyze a single frame in the trajectory.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        idx_frame: int</span>
+<span class="sd">            Index of the frame to analyze.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.array</span>
+<span class="sd">            The frame index, simulation time, and pairwise RMSD of structure</span>
+<span class="sd">            at current frame to all other frames in the trajectory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># update MDA objects</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_universe</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">idx_frame</span><span class="p">]</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atomgroups</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># get the current frame and time</span>
+        <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">frame</span>
+        <span class="n">results</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">time</span>
+
+        <span class="c1"># current positions</span>
+        <span class="n">iframe</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">frame</span>
+        <span class="n">i_ref</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">positions</span>
+
+        <span class="c1"># diagonal entries need not be calculated due to metric(x,x) == 0 in</span>
+        <span class="c1"># theory, _ts not updated properly.</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_trajectory</span><span class="p">[</span><span class="n">iframe</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">]):</span>
+            <span class="c1"># j frame position</span>
+            <span class="n">j_ref</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">positions</span>
+
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">rms</span><span class="o">.</span><span class="n">rmsd</span><span class="p">(</span><span class="n">i_ref</span><span class="p">,</span> <span class="n">j_ref</span><span class="p">,</span> <span class="n">superposition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">superposition</span><span class="p">)</span>
+
+            <span class="n">results</span><span class="o">.</span><span class="n">dist_matrix</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span>
+
+        <span class="c1"># return the results</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+<div class="viewcode-block" id="RMSD._conclude"><a class="viewcode-back" href="../../colvar_parallel.rmsdpair.html#colvar_parallel.rmsdpair.RMSD._conclude">[docs]</a>    <span class="k">def</span> <span class="nf">_conclude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called after the run() method to finish everything up.</span>
+
+<span class="sd">        This method is called by the run() method and should not be called</span>
+<span class="sd">        directly by the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># calculate the rmsd matrix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">dist_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:]</span>
+        <span class="c1"># verify dist_matrix is upper triangular</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">dist_matrix</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">dist_matrix</span><span class="p">))</span>
+        <span class="c1"># add transpose of dist_matrix to itself to get full matrix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">dist_matrix</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">dist_matrix</span><span class="o">.</span><span class="n">T</span>
+        <span class="c1"># output the results</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">dist_matrix</span>
+
+        <span class="c1"># call base class method</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_conclude</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Alec Glisman.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

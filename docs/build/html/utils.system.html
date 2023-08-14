@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.system module &mdash; Analysis Two Chain PAA v2.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="utils.parsers module" href="utils.parsers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Analysis Two Chain PAA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="analysis_helpers.html">analysis_helpers package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colvar_parallel.html">colvar_parallel package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">figures package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stats.html">stats package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="utils.html">utils package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="utils.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="utils.logs.html">utils.logs module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.parsers.html">utils.parsers module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">utils.system module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.system.run_shell_cmd"><code class="docutils literal notranslate"><span class="pre">run_shell_cmd()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Key files:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="colvar_parallel.base.html">colvar_parallel.base module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stats.block_error.html">stats.block_error module</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">External links:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://www.dask.org/get-started">Dask</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/quickstart.html">MDAnalysis Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/README.html">MDAnalysis Examples</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis_modules.html">MDAnalysis Analysis Modules</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://www.plumed.org/doc-v2.8/user-doc/html/tutorials.html">Plumed Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Analysis Two Chain PAA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="utils.html">utils package</a></li>
+      <li class="breadcrumb-item active">utils.system module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/utils.system.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-utils.system">
+<span id="utils-system-module"></span><h1>utils.system module<a class="headerlink" href="#module-utils.system" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.system.run_shell_cmd">
+<span class="sig-prename descclassname"><span class="pre">utils.system.</span></span><span class="sig-name descname"><span class="pre">run_shell_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{'CHROME_DESKTOP':</span> <span class="pre">'code-insiders-url-handler.desktop',</span> <span class="pre">'COLORTERM':</span> <span class="pre">'truecolor',</span> <span class="pre">'CONDA_DEFAULT_ENV':</span> <span class="pre">'analysis',</span> <span class="pre">'CONDA_EXE':</span> <span class="pre">'/home/aglisman/miniconda3/bin/conda',</span> <span class="pre">'CONDA_PREFIX':</span> <span class="pre">'/home/aglisman/miniconda3/envs/analysis',</span> <span class="pre">'CONDA_PREFIX_1':</span> <span class="pre">'/home/aglisman/miniconda3',</span> <span class="pre">'CONDA_PROMPT_MODIFIER':</span> <span class="pre">'(analysis)</span> <span class="pre">',</span> <span class="pre">'CONDA_PYTHON_EXE':</span> <span class="pre">'/home/aglisman/miniconda3/bin/python',</span> <span class="pre">'CONDA_SHLVL':</span> <span class="pre">'2',</span> <span class="pre">'CPPFLAGS':</span> <span class="pre">'</span> <span class="pre">-I/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/include</span> <span class="pre">-I/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/include</span> <span class="pre">-I/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/include</span> <span class="pre">-I/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/include',</span> <span class="pre">'CUDAROOT':</span> <span class="pre">'/usr/local/cuda-12.0',</span> <span class="pre">'DBUS_SESSION_BUS_ADDRESS':</span> <span class="pre">'unix:path=/run/user/1000/bus',</span> <span class="pre">'DEFAULTS_PATH':</span> <span class="pre">'/usr/share/gconf/ubuntu.default.path',</span> <span class="pre">'DESKTOP_SESSION':</span> <span class="pre">'ubuntu',</span> <span class="pre">'DISPLAY':</span> <span class="pre">':1',</span> <span class="pre">'DOCUTILSCONFIG':</span> <span class="pre">'/media/aglisman/Linux_Overflow/home/aglisman/VSCodeProjects/two-chain-paper/Analysis-Two-Chain-PAA/docs/source/docutils.conf',</span> <span class="pre">'EDITOR':</span> <span class="pre">'nvim',</span> <span class="pre">'FZF_DEFAULT_COMMAND':</span> <span class="pre">'rg</span> <span class="pre">--files</span> <span class="pre">--hidden</span> <span class="pre">-g</span> <span class="pre">&quot;!.git&quot;</span> <span class="pre">',</span> <span class="pre">'GDK_BACKEND':</span> <span class="pre">'x11',</span> <span class="pre">'GDMSESSION':</span> <span class="pre">'ubuntu',</span> <span class="pre">'GEM_HOME':</span> <span class="pre">'/home/aglisman/.gem/ruby/2.7.0/bin',</span> <span class="pre">'GIO_LAUNCHED_DESKTOP_FILE':</span> <span class="pre">'/usr/share/applications/code-insiders.desktop',</span> <span class="pre">'GIO_LAUNCHED_DESKTOP_FILE_PID':</span> <span class="pre">'1011326',</span> <span class="pre">'GIT_ASKPASS':</span> <span class="pre">'/usr/share/code-insiders/resources/app/extensions/git/dist/askpass.sh',</span> <span class="pre">'GJS_DEBUG_OUTPUT':</span> <span class="pre">'stderr',</span> <span class="pre">'GJS_DEBUG_TOPICS':</span> <span class="pre">'JS</span> <span class="pre">ERROR;JS</span> <span class="pre">LOG',</span> <span class="pre">'GMXBIN':</span> <span class="pre">'/home/aglisman/software/gromacs_mpi_2022.3-plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/bin',</span> <span class="pre">'GMXDATA':</span> <span class="pre">'/home/aglisman/software/gromacs_mpi_2022.3-plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/share/gromacs',</span> <span class="pre">'GMXLDLIB':</span> <span class="pre">'/home/aglisman/software/gromacs_mpi_2022.3-plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib',</span> <span class="pre">'GMXMAN':</span> <span class="pre">'/home/aglisman/software/gromacs_mpi_2022.3-plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/share/man',</span> <span class="pre">'GNOME_DESKTOP_SESSION_ID':</span> <span class="pre">'this-is-deprecated',</span> <span class="pre">'GNOME_SHELL_SESSION_MODE':</span> <span class="pre">'ubuntu',</span> <span class="pre">'GPG_AGENT_INFO':</span> <span class="pre">'/run/user/1000/gnupg/S.gpg-agent:0:1',</span> <span class="pre">'GREP_COLOR':</span> <span class="pre">'30;103',</span> <span class="pre">'GROMACSMPIROOT':</span> <span class="pre">'/home/aglisman/software/gromacs_mpi_2022.3-plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0',</span> <span class="pre">'GROMACSROOT':</span> <span class="pre">'/home/aglisman/software/gromacs_2022.3-plumed_2.8.1-gcc_11.3.0-cuda_12.0',</span> <span class="pre">'GROMACS_DIR':</span> <span class="pre">'/home/aglisman/software/gromacs_mpi_2022.3-plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0',</span> <span class="pre">'GTK_IM_MODULE':</span> <span class="pre">'ibus',</span> <span class="pre">'GTK_MODULES':</span> <span class="pre">'gail:atk-bridge',</span> <span class="pre">'HISTFILE':</span> <span class="pre">'/home/aglisman/.zsh_history',</span> <span class="pre">'HISTSIZE':</span> <span class="pre">'100000',</span> <span class="pre">'HOME':</span> <span class="pre">'/home/aglisman',</span> <span class="pre">'HOMEBREW_NO_ANALYTICS':</span> <span class="pre">'1',</span> <span class="pre">'IM_CONFIG_PHASE':</span> <span class="pre">'1',</span> <span class="pre">'INVOCATION_ID':</span> <span class="pre">'ec8d0937ab49430ca273ccbf8099b248',</span> <span class="pre">'JOURNAL_STREAM':</span> <span class="pre">'8:47514',</span> <span class="pre">'KMP_DUPLICATE_LIB_OK':</span> <span class="pre">'True',</span> <span class="pre">'KMP_INIT_AT_FORK':</span> <span class="pre">'FALSE',</span> <span class="pre">'LANG':</span> <span class="pre">'en_US.UTF-8',</span> <span class="pre">'LC_ALL':</span> <span class="pre">'en_US.UTF-8',</span> <span class="pre">'LDFLAGS':</span> <span class="pre">'</span> <span class="pre">-L/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib</span> <span class="pre">-L/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib</span> <span class="pre">-L/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib</span> <span class="pre">-L/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib',</span> <span class="pre">'LD_LIBRARY_PATH':</span> <span class="pre">'/usr/local/cuda-12.0/lib64:/home/aglisman/software/gromacs_mpi_2022.3-plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib:/usr/local/cuda-12.0/lib64::/home/aglisman/software/orca/orca_5_0_4_linux_x86-64_shared_openmpi411:/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib:/home/aglisman/software/orca/orca_5_0_4_linux_x86-64_shared_openmpi411:/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib:/home/aglisman/software/orca/orca_5_0_4_linux_x86-64_shared_openmpi411:/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib:/home/aglisman/software/gromacs_mpi_2022.3-plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib:/home/aglisman/software/orca/orca_5_0_4_linux_x86-64_shared_openmpi411:/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib',</span> <span class="pre">'LESS':</span> <span class="pre">'--use-color</span> <span class="pre">-DSkY$DPWb',</span> <span class="pre">'LOGNAME':</span> <span class="pre">'aglisman',</span> <span class="pre">'LS_COLORS':</span> <span class="pre">'cd=00;33;01:st=00;34;02:no=00;22;39:bd=00;33;03:ln=00;36:su=00;38;5;9:ex=00;38;5;10:tw=00;34;04:or=00;31;03:fi=00;22;39:di=00;34:sg=00;38;5;11:ow=00;34;04;03:pi=00;33:*.zwc=00;02:so=00;35:mi=00;39;02:*.DS_Store=00;02',</span> <span class="pre">'MAKEFLAGS':</span> <span class="pre">'',</span> <span class="pre">'MAKELEVEL':</span> <span class="pre">'1',</span> <span class="pre">'MAKE_TERMOUT':</span> <span class="pre">'/dev/pts/0',</span> <span class="pre">'MANAGERPID':</span> <span class="pre">'10887',</span> <span class="pre">'MANDATORY_PATH':</span> <span class="pre">'/usr/share/gconf/ubuntu.mandatory.path',</span> <span class="pre">'MANPATH':</span> <span class="pre">'/home/aglisman/software/gromacs_mpi_2022.3-plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/share/man',</span> <span class="pre">'MFLAGS':</span> <span class="pre">'',</span> <span class="pre">'Multiwfnpath':</span> <span class="pre">'/home/aglisman/software/multiwfn/Multiwfn_3.8_dev_bin_Linux',</span> <span class="pre">'OLDPWD':</span> <span class="pre">'/media/aglisman/Linux_Overflow/home/aglisman/VSCodeProjects/two-chain-paper/Analysis-Two-Chain-PAA',</span> <span class="pre">'OMP_STACKSIZE':</span> <span class="pre">'2000M',</span> <span class="pre">'ORIGINAL_XDG_CURRENT_DESKTOP':</span> <span class="pre">'ubuntu:GNOME',</span> <span class="pre">'P9K_SSH':</span> <span class="pre">'0',</span> <span class="pre">'P9K_TTY':</span> <span class="pre">'old',</span> <span class="pre">'PAGER':</span> <span class="pre">'bat',</span> <span class="pre">'PATH':</span> <span class="pre">'/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/bin:/home/aglisman/.local/bin:/usr/local/sbin:/home/aglisman/bin:/usr/local/bin:/usr/local/cuda-12.0/bin:/home/aglisman/software/gromacs_mpi_2022.3-plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/bin:/home/aglisman/miniconda3/envs/analysis/bin:/home/aglisman/miniconda3/condabin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/lib:/home/linuxbrew/.linuxbrew/include:/home/aglisman/software/AutoDock/x86_64Linux2:/home/aglisman/software/AutoDockVina/autodock_vina_1_1_2_linux_x86/bin:/home/aglisman/software/AutoDockFR/ADFRsuite-1.0/ADFRsuite_x86_64Linux_1.0/bin:/home/aglisman/software/AutoDockTools/mgltools_x86_64Linux2_1.5.7/bin:/home/aglisman/software/msms/bin:/home/aglisman/software/orca/orca_5_0_4_linux_x86-64_shared_openmpi411:/home/aglisman/software/multiwfn/Multiwfn_3.8_dev_bin_Linux:/home/aglisman/.gem/ruby/2.7.0/bin:/home/aglisman/.cargo/bin',</span> <span class="pre">'PERL5OPT':</span> <span class="pre">'-I/home/aglisman/perl5</span> <span class="pre">-I/home/aglisman/perl5',</span> <span class="pre">'PERLROOT':</span> <span class="pre">'/home/aglisman/perl5',</span> <span class="pre">'PERL_MB_OPT':</span> <span class="pre">'--install_base</span> <span class="pre">&quot;/home/aglisman/perl5&quot;',</span> <span class="pre">'PERL_MM_OPT':</span> <span class="pre">'INSTALL_BASE=/home/aglisman/perl5',</span> <span class="pre">'PKG_CONFIG_PATH':</span> <span class="pre">'/home/aglisman/software/gromacs_mpi_2022.3-plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib/pkgconfig',</span> <span class="pre">'PLUMEDROOT':</span> <span class="pre">'/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0',</span> <span class="pre">'PLUMED_KERNEL':</span> <span class="pre">'/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib/libplumedKernel.so',</span> <span class="pre">'PLUMED_VIMPATH':</span> <span class="pre">'/home/aglisman/software/plumed_mpi_2.8.1-gcc_11.3.0-cuda_12.0/lib/plumed/vim',</span> <span class="pre">'PWD':</span> <span class="pre">'/media/aglisman/Linux_Overflow/home/aglisman/VSCodeProjects/two-chain-paper/Analysis-Two-Chain-PAA/docs',</span> <span class="pre">'QT_ACCESSIBILITY':</span> <span class="pre">'1',</span> <span class="pre">'QT_IM_MODULE':</span> <span class="pre">'ibus',</span> <span class="pre">'SAVEHIST':</span> <span class="pre">'100000',</span> <span class="pre">'SESSION_MANAGER':</span> <span class="pre">'local/desktop:&#64;/tmp/.ICE-unix/11219,unix/desktop:/tmp/.ICE-unix/11219',</span> <span class="pre">'SHELL':</span> <span class="pre">'/usr/bin/zsh',</span> <span class="pre">'SHLVL':</span> <span class="pre">'1',</span> <span class="pre">'SSH_AGENT_LAUNCHER':</span> <span class="pre">'gnome-keyring',</span> <span class="pre">'SSH_AUTH_SOCK':</span> <span class="pre">'/run/user/1000/keyring/ssh',</span> <span class="pre">'SSH_KEY_PATH':</span> <span class="pre">'~/.ssh/rsa_id:~/.ssh/id_ed25519',</span> <span class="pre">'SYSTEMD_EXEC_PID':</span> <span class="pre">'11239',</span> <span class="pre">'TERM':</span> <span class="pre">'xterm-256color',</span> <span class="pre">'TERM_PROGRAM':</span> <span class="pre">'vscode',</span> <span class="pre">'TERM_PROGRAM_VERSION':</span> <span class="pre">'1.82.0-insider',</span> <span class="pre">'USER':</span> <span class="pre">'aglisman',</span> <span class="pre">'USERNAME':</span> <span class="pre">'aglisman',</span> <span class="pre">'VISUAL':</span> <span class="pre">'nvim',</span> <span class="pre">'VSCODE_GIT_ASKPASS_EXTRA_ARGS':</span> <span class="pre">'--ms-enable-electron-run-as-node',</span> <span class="pre">'VSCODE_GIT_ASKPASS_MAIN':</span> <span class="pre">'/usr/share/code-insiders/resources/app/extensions/git/dist/askpass-main.js',</span> <span class="pre">'VSCODE_GIT_ASKPASS_NODE':</span> <span class="pre">'/usr/share/code-insiders/code-insiders',</span> <span class="pre">'VSCODE_GIT_IPC_HANDLE':</span> <span class="pre">'/run/user/1000/vscode-git-be4f9c1f0c.sock',</span> <span class="pre">'WINDOWPATH':</span> <span class="pre">'2',</span> <span class="pre">'XAUTHORITY':</span> <span class="pre">'/run/user/1000/gdm/Xauthority',</span> <span class="pre">'XDG_CACHE_HOME':</span> <span class="pre">'/home/aglisman/.cache',</span> <span class="pre">'XDG_CONFIG_DIRS':</span> <span class="pre">'/etc/xdg/xdg-ubuntu:/etc/xdg',</span> <span class="pre">'XDG_CONFIG_HOME':</span> <span class="pre">'/home/aglisman/.config',</span> <span class="pre">'XDG_CURRENT_DESKTOP':</span> <span class="pre">'Unity',</span> <span class="pre">'XDG_DATA_DIRS':</span> <span class="pre">'/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop',</span> <span class="pre">'XDG_DATA_HOME':</span> <span class="pre">'/home/aglisman/.local/share',</span> <span class="pre">'XDG_MENU_PREFIX':</span> <span class="pre">'gnome-',</span> <span class="pre">'XDG_RUNTIME_DIR':</span> <span class="pre">'/run/user/1000',</span> <span class="pre">'XDG_SESSION_CLASS':</span> <span class="pre">'user',</span> <span class="pre">'XDG_SESSION_DESKTOP':</span> <span class="pre">'ubuntu',</span> <span class="pre">'XDG_SESSION_TYPE':</span> <span class="pre">'x11',</span> <span class="pre">'XMODIFIERS':</span> <span class="pre">'&#64;im=ibus',</span> <span class="pre">'ZSH':</span> <span class="pre">'/home/aglisman/.oh-my-zsh',</span> <span class="pre">'ZSH_WAKATIME_BIN':</span> <span class="pre">'/home/aglisman/miniconda3/bin/wakatime',</span> <span class="pre">'_':</span> <span class="pre">'/usr/bin/make',</span> <span class="pre">'_CE_CONDA':</span> <span class="pre">'',</span> <span class="pre">'_CE_M':</span> <span class="pre">'',</span> <span class="pre">'_P9K_SSH_TTY':</span> <span class="pre">'/dev/pts/0',</span> <span class="pre">'_P9K_TTY':</span> <span class="pre">'/dev/pts/0',</span> <span class="pre">'dropbox_base':</span> <span class="pre">'/home/aglisman/Dropbox',</span> <span class="pre">'host_MacBookAir':</span> <span class="pre">'alecglisman-MacBookAir',</span> <span class="pre">'host_MacBookPro':</span> <span class="pre">'Alecs-MacBook-Pro.local',</span> <span class="pre">'host_MacBookProKayla':</span> <span class="pre">'Kaylas-MacBook-Pro.local',</span> <span class="pre">'host_MacBookPro_alternate':</span> <span class="pre">'alecs-mbp.lan',</span> <span class="pre">'host_OS':</span> <span class="pre">'Linux',</span> <span class="pre">'host_PC_Ubuntu':</span> <span class="pre">'desktop',</span> <span class="pre">'host_Shear':</span> <span class="pre">'shear',</span> <span class="pre">'host_Stokes':</span> <span class="pre">'stokes',</span> <span class="pre">'host_blob':</span> <span class="pre">'blob',</span> <span class="pre">'host_coil':</span> <span class="pre">'coil',</span> <span class="pre">'host_force':</span> <span class="pre">'force',</span> <span class="pre">'host_name':</span> <span class="pre">'desktop',</span> <span class="pre">'host_pi':</span> <span class="pre">'pi',</span> <span class="pre">'host_pi4':</span> <span class="pre">'pi4',</span> <span class="pre">'host_user':</span> <span class="pre">'aglisman',</span> <span class="pre">'host_zeal_login':</span> <span class="pre">'zeal',</span> <span class="pre">'host_zeal_node':</span> <span class="pre">'node',</span> <span class="pre">'user_BradyServers':</span> <span class="pre">'alec',</span> <span class="pre">'user_MacBookAir':</span> <span class="pre">'alecglisman',</span> <span class="pre">'user_UbuntuBuild':</span> <span class="pre">'aglisman',</span> <span class="pre">'user_macOS':</span> <span class="pre">'alecglisman',</span> <span class="pre">'user_pi':</span> <span class="pre">'pi',</span> <span class="pre">'user_pi4':</span> <span class="pre">'aglisman'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stderr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stdin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cwd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/utils/system.html#run_shell_cmd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.system.run_shell_cmd" title="Permalink to this definition"></a></dt>
+<dd><p>Runs a shell command and returns stdout and stderr.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmd</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>]</em>) – List of strings representing the command to run</p></li>
+<li><p><strong>env</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>]</em>) – Dictionary of environment variables to pass</p></li>
+<li><p><strong>stdout</strong> (<em>PIPE</em>) – Buffer for command stdout</p></li>
+<li><p><strong>stderr</strong> (<em>PIPE</em>) – Buffer for command stderr</p></li>
+<li><p><strong>stdin</strong> (<em>PIPE</em>) – Buffer for command stdin</p></li>
+<li><p><strong>cwd</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – String representation of the command cwd</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>tuple[str, str]</em> – Tuple of stdout and stderr</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="utils.parsers.html" class="btn btn-neutral float-left" title="utils.parsers module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Alec Glisman.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

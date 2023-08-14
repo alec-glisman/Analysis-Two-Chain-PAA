@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>colvar_parallel.rmsd module &mdash; Analysis Two Chain PAA v2.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="colvar_parallel.rmsdpair module" href="colvar_parallel.rmsdpair.html" />
+    <link rel="prev" title="colvar_parallel.rdf module" href="colvar_parallel.rdf.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Analysis Two Chain PAA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="analysis_helpers.html">analysis_helpers package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="colvar_parallel.html">colvar_parallel package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="colvar_parallel.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.base.html">colvar_parallel.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.contactmatrix.html">colvar_parallel.contactmatrix module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.contacts.html">colvar_parallel.contacts module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.dihedrals.html">colvar_parallel.dihedrals module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.hbonds.html">colvar_parallel.hbonds module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.polymerlengths.html">colvar_parallel.polymerlengths module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.rdf.html">colvar_parallel.rdf module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">colvar_parallel.rmsd module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#calculating-root-mean-square-deviations-rmsd-colvar-parallel-rms">Calculating Root-Mean-Square Deviations (RMSD) — <code class="xref py py-mod docutils literal notranslate"><span class="pre">colvar_parallel.rms</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">RMSD</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.rmsdpair.html">colvar_parallel.rmsdpair module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="colvar_parallel.html#module-colvar_parallel">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">figures package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stats.html">stats package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">utils package</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Key files:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="colvar_parallel.base.html">colvar_parallel.base module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stats.block_error.html">stats.block_error module</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">External links:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://www.dask.org/get-started">Dask</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/quickstart.html">MDAnalysis Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/README.html">MDAnalysis Examples</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis_modules.html">MDAnalysis Analysis Modules</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://www.plumed.org/doc-v2.8/user-doc/html/tutorials.html">Plumed Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Analysis Two Chain PAA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="colvar_parallel.html">colvar_parallel package</a></li>
+      <li class="breadcrumb-item active">colvar_parallel.rmsd module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/colvar_parallel.rmsd.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-colvar_parallel.rmsd">
+<span id="colvar-parallel-rmsd-module"></span><h1>colvar_parallel.rmsd module<a class="headerlink" href="#module-colvar_parallel.rmsd" title="Permalink to this heading"></a></h1>
+<section id="calculating-root-mean-square-deviations-rmsd-colvar-parallel-rms">
+<h2>Calculating Root-Mean-Square Deviations (RMSD) — <code class="xref py py-mod docutils literal notranslate"><span class="pre">colvar_parallel.rms</span></code><a class="headerlink" href="#calculating-root-mean-square-deviations-rmsd-colvar-parallel-rms" title="Permalink to this heading"></a></h2>
+<p>This module contains parallel versions of analysis tasks in
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">MDAnalysis.analysis.rms.RMSD</span></code>.</p>
+<section id="see-also">
+<h3>See Also<a class="headerlink" href="#see-also" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis/rms.html#module-MDAnalysis.analysis.rms" title="(in MDAnalysis v2.5.0)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">MDAnalysis.analysis.rms</span></code></a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="colvar_parallel.rmsd.RMSD">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">colvar_parallel.rmsd.</span></span><span class="sig-name descname"><span class="pre">RMSD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mobile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">superposition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colvar_parallel/rmsd.html#RMSD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#colvar_parallel.rmsd.RMSD" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="colvar_parallel.base.html#colvar_parallel.base.ParallelAnalysisBase" title="colvar_parallel.base.ParallelAnalysisBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelAnalysisBase</span></code></a></p>
+<p>Parallel RMSD analysis.</p>
+<p>Optimally superimpose the coordinates in the
+<a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/core/groups.html#MDAnalysis.core.groups.AtomGroup" title="(in MDAnalysis v2.5.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">AtomGroup</span></code></a> <cite>mobile</cite> onto <cite>ref</cite> for
+each frame in the trajectory of <cite>mobile</cite>, and calculate the time
+series of the RMSD. The single frame calculation is performed with
+<a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis/rms.html#MDAnalysis.analysis.rms.rmsd" title="(in MDAnalysis v2.5.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">MDAnalysis.analysis.rms.rmsd()</span></code></a> (with <code class="docutils literal notranslate"><span class="pre">superposition=True</span></code>
+by default).</p>
+<section id="attributes">
+<h4>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading"></a></h4>
+<dl class="simple">
+<dt>rmsd<span class="classifier">array</span></dt><dd><p>Contains the time series of the RMSD as a <cite>Tx3</cite>
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> array with content <code class="docutils literal notranslate"><span class="pre">[[frame,</span> <span class="pre">time</span>
+<span class="pre">(ps),</span> <span class="pre">RMSD</span> <span class="pre">(Å)],</span> <span class="pre">[...],</span> <span class="pre">...]</span></code>, where <cite>T</cite> is the number of
+time steps selected in the <a class="reference internal" href="#id39" title="colvar_parallel.rmsd.RMSD.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code></a> method.</p>
+</dd>
+</dl>
+</section>
+<section id="parameters">
+<h4>Parameters<a class="headerlink" href="#parameters" title="Permalink to this heading"></a></h4>
+<dl class="simple">
+<dt>mobile<span class="classifier">AtomGroup</span></dt><dd><p>atoms that are optimally superimposed on <cite>ref</cite> before
+the RMSD is calculated for all atoms. The coordinates
+of <cite>mobile</cite> change with each frame in the trajectory.</p>
+</dd>
+<dt>ref<span class="classifier">AtomGroup</span></dt><dd><p>fixed reference coordinates</p>
+</dd>
+<dt>superposition<span class="classifier">bool, optional</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> perform a RMSD-superposition, <code class="docutils literal notranslate"><span class="pre">False</span></code> only
+calculates the RMSD. The default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</dd>
+</dl>
+</section>
+<section id="id1">
+<h4>See Also<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h4>
+<p>MDAnalysis.analysis.rms.RMSD</p>
+</section>
+<section id="notes">
+<h4>Notes<a class="headerlink" href="#notes" title="Permalink to this heading"></a></h4>
+<p>If you use trajectory data from simulations performed under <em>periodic
+boundary conditions</em> then you <strong>must make your molecules whole</strong> before
+performing RMSD calculations so that the centers of mass of the mobile and
+reference structure are properly superimposed.</p>
+<p>Run the analysis with <a class="reference internal" href="#id39" title="colvar_parallel.rmsd.RMSD.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">RMSD.run()</span></code></a>, which stores the results
+in the array <code class="xref py py-attr docutils literal notranslate"><span class="pre">RMSD.rmsd</span></code>.</p>
+<p>The root mean square deviation <span class="math notranslate nohighlight">\(\rho(t)\)</span> of a group of <span class="math notranslate nohighlight">\(N\)</span>
+atoms relative to a reference structure as a function of time is
+calculated as:</p>
+<div class="math notranslate nohighlight">
+\[\rho(t) = \sqrt{\frac{1}{N} \sum_{i=1}^N \left(\mathbf{x}_i(t)
+                - \mathbf{x}_i^{\text{ref}}\right)^2}\]</div>
+<p>The selected coordinates from <cite>atomgroup</cite> are optimally superimposed
+(translation and rotation) on the <cite>reference</cite> coordinates at each time step
+as to minimize the RMSD.</p>
+<p>At the moment, this class has far fewer features than its serial
+counterpart, <a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis/rms.html#MDAnalysis.analysis.rms.RMSD" title="(in MDAnalysis v2.5.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MDAnalysis.analysis.rms.RMSD</span></code></a>.</p>
+</section>
+<section id="examples">
+<h4>Examples<a class="headerlink" href="#examples" title="Permalink to this heading"></a></h4>
+<p>In this example we will globally fit a protein to a reference
+structure. The example is a DIMS trajectory of adenylate kinase, which
+samples a large closed-to-open transition.</p>
+<p>The trajectory is included in the MDAnalysis test data files. The data in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">RMSD.rmsd</span></code> is plotted with <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html#matplotlib.pyplot.plot" title="(in Matplotlib v3.7.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matplotlib.pyplot.plot()</span></code></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">MDAnalysis</span>
+<span class="kn">from</span> <span class="nn">MDAnalysis.tests.datafiles</span> <span class="kn">import</span> <span class="n">PSF</span><span class="p">,</span> <span class="n">DCD</span><span class="p">,</span> <span class="n">CRD</span>
+<span class="n">mobile</span> <span class="o">=</span> <span class="n">MDAnalysis</span><span class="o">.</span><span class="n">Universe</span><span class="p">(</span><span class="n">PSF</span><span class="p">,</span><span class="n">DCD</span><span class="p">)</span><span class="o">.</span><span class="n">atoms</span>
+<span class="c1"># reference closed AdK (1AKE) (with the default ref_frame=0)</span>
+<span class="n">ref</span> <span class="o">=</span> <span class="n">MDAnalysis</span><span class="o">.</span><span class="n">Universe</span><span class="p">(</span><span class="n">PSF</span><span class="p">,</span><span class="n">DCD</span><span class="p">)</span><span class="o">.</span><span class="n">atoms</span>
+
+<span class="kn">from</span> <span class="nn">colvar_parallel.rms</span> <span class="kn">import</span> <span class="n">RMSD</span>
+
+<span class="n">R</span> <span class="o">=</span> <span class="n">RMSD</span><span class="p">(</span><span class="n">mobile</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span>
+<span class="n">R</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">rmsd</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">rmsd</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># transpose makes it easier for plotting</span>
+<span class="n">time</span> <span class="o">=</span> <span class="n">rmsd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">rmsd</span><span class="p">,</span>  <span class="n">label</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;time (ps)&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;RMSD ($</span><span class="se">\\</span><span class="s2">AA$)&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;rmsd_all_CORE_LID_NMP_ref1AKE.pdf&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Set up the analysis.</p>
+</section>
+<section id="id2">
+<h4>Parameters<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h4>
+<dl class="simple">
+<dt>mobile<span class="classifier">AtomGroup</span></dt><dd><p>atoms that are optimally superimposed on <cite>ref</cite> before
+the RMSD is calculated for all atoms. The coordinates
+of <cite>mobile</cite> change with each frame in the trajectory.</p>
+</dd>
+<dt>ref<span class="classifier">AtomGroup</span></dt><dd><p>fixed reference coordinates</p>
+</dd>
+<dt>label<span class="classifier">str, optional</span></dt><dd><p>Text label for system.</p>
+</dd>
+<dt>superposition<span class="classifier">bool, optional</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> perform a RMSD-superposition, <code class="docutils literal notranslate"><span class="pre">False</span></code> only
+calculates the RMSD. The default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</dd>
+<dt>verbose<span class="classifier">bool, optional</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: print progress bar to the screen; <code class="docutils literal notranslate"><span class="pre">False</span></code>: no
+progress bar. The default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.rmsd.RMSD._conclude">
+<span class="sig-name descname"><span class="pre">_conclude</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/colvar_parallel/rmsd.html#RMSD._conclude"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#colvar_parallel.rmsd.RMSD._conclude" title="Permalink to this definition"></a></dt>
+<dd><p>Finalize the results array and set the <cite>rmsd</cite> attribute.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.rmsd.RMSD._job_block">
+<span class="sig-name descname"><span class="pre">_job_block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absolute_frame_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="headerlink" href="#colvar_parallel.rmsd.RMSD._job_block" title="Permalink to this definition"></a></dt>
+<dd><p>Helper function to actually setup the Dask tasks</p>
+<section id="id3">
+<h5>Parameters<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h5>
+<dl class="simple">
+<dt>absolute_frame_indices<span class="classifier">np.array</span></dt><dd><p>Array of frame indices to analyze. These indices are absolute
+and refer to frame numbers in the trajectory.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h5>Returns<a class="headerlink" href="#returns" title="Permalink to this heading"></a></h5>
+<dl class="simple">
+<dt>np.array</dt><dd><p>Array of results from the analysis of the frames</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.rmsd.RMSD._prepare">
+<span class="sig-name descname"><span class="pre">_prepare</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#colvar_parallel.rmsd.RMSD._prepare" title="Permalink to this definition"></a></dt>
+<dd><p>Prepare the analysis class for the single frame analysis.
+This is called once before the analysis is started inside
+the run() method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.rmsd.RMSD._reduce">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_reduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_single_frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#colvar_parallel.rmsd.RMSD._reduce" title="Permalink to this definition"></a></dt>
+<dd><p>‘append’ action for a time series</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.rmsd.RMSD._setup_frames">
+<span class="sig-name descname"><span class="pre">_setup_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajectory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#colvar_parallel.rmsd.RMSD._setup_frames" title="Permalink to this definition"></a></dt>
+<dd><p>Pass a Reader object and define the desired iteration pattern
+through the trajectory</p>
+<section id="id4">
+<h5>Parameters<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h5>
+<dl>
+<dt>trajectory<span class="classifier">mda.Reader</span></dt><dd><p>A trajectory Reader</p>
+</dd>
+<dt>start<span class="classifier">int, optional</span></dt><dd><p>start frame of analysis</p>
+</dd>
+<dt>stop<span class="classifier">int, optional</span></dt><dd><p>stop frame of analysis</p>
+</dd>
+<dt>step<span class="classifier">int, optional</span></dt><dd><p>number of frames to skip between each analysed frame</p>
+</dd>
+<dt>frames<span class="classifier">array_like, optional</span></dt><dd><p>array of integers or booleans to slice trajectory; cannot be
+combined with <cite>start</cite>, <cite>stop</cite>, <cite>step</cite></p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.2.0.</span></p>
+</div>
+</dd>
+</dl>
+</section>
+<section id="raises">
+<h5>Raises<a class="headerlink" href="#raises" title="Permalink to this heading"></a></h5>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>if <em>both</em> <cite>frames</cite> and at least one of <cite>start</cite>, <cite>stop</cite>, or <cite>frames</cite>
+is provided (i.e., set to another value than <code class="docutils literal notranslate"><span class="pre">None</span></code>)</p>
+</dd>
+</dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0: </span>Added .frames and .times arrays as attributes</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2.2.0: </span>Added ability to iterate through trajectory by passing a list of
+frame indices in the <cite>frames</cite> keyword argument</p>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.rmsd.RMSD._single_frame">
+<span class="sig-name descname"><span class="pre">_single_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/colvar_parallel/rmsd.html#RMSD._single_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#colvar_parallel.rmsd.RMSD._single_frame" title="Permalink to this definition"></a></dt>
+<dd><p>Analyze a single frame in the trajectory.</p>
+<section id="id5">
+<h5>Parameters<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h5>
+<dl class="simple">
+<dt>idx_frame: int</dt><dd><p>Index of the frame to analyze.</p>
+</dd>
+</dl>
+</section>
+<section id="id6">
+<h5>Returns<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h5>
+<dl class="simple">
+<dt>np.array</dt><dd><p>The frame index, simulation time, and RMSD from the reference
+structure.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.rmsd.RMSD.merge_external_data">
+<span class="sig-name descname"><span class="pre">merge_external_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'time'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#colvar_parallel.rmsd.RMSD.merge_external_data" title="Permalink to this definition"></a></dt>
+<dd><p>Merge external data with the results of the analysis</p>
+<section id="id7">
+<h5>Parameters<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h5>
+<dl class="simple">
+<dt>df<span class="classifier">pd.DataFrame</span></dt><dd><p>Dataframe containing the data to merge</p>
+</dd>
+<dt>col<span class="classifier">str, optional</span></dt><dd><p>Column name to merge on, by default “time”</p>
+</dd>
+</dl>
+</section>
+<section id="id8">
+<h5>Returns<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h5>
+<dl class="simple">
+<dt>pd.DataFrame</dt><dd><p>Dataframe with merged data</p>
+</dd>
+</dl>
+</section>
+<section id="id9">
+<h5>Raises<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h5>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>If no results are present</p>
+</dd>
+<dt>ValueError</dt><dd><p>If no data is merged</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.rmsd.RMSD.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dask'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="colvar_parallel.base.html#colvar_parallel.base.ParallelAnalysisBase" title="colvar_parallel.base.ParallelAnalysisBase"><span class="pre">ParallelAnalysisBase</span></a></span></span><a class="headerlink" href="#colvar_parallel.rmsd.RMSD.run" title="Permalink to this definition"></a></dt>
+<dd><p>Perform the calculation</p>
+<section id="id10">
+<h5>Parameters<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h5>
+<dl class="simple">
+<dt>start<span class="classifier">int, optional</span></dt><dd><p>start frame of analysis</p>
+</dd>
+<dt>stop<span class="classifier">int, optional</span></dt><dd><p>stop frame of analysis</p>
+</dd>
+<dt>step<span class="classifier">int, optional</span></dt><dd><p>number of frames to skip between each analysed frame</p>
+</dd>
+<dt>frames<span class="classifier">array_like, optional</span></dt><dd><p>array of integers or booleans to slice trajectory; <cite>frames</cite> can
+only be used <em>instead</em> of <cite>start</cite>, <cite>stop</cite>, and <cite>step</cite>. Setting
+<em>both</em> <cite>frames</cite> and at least one of <cite>start</cite>, <cite>stop</cite>, <cite>step</cite> to a
+non-default value will raise a <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.11)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>.
+.. versionadded:: 2.2.0</p>
+</dd>
+<dt>verbose<span class="classifier">bool, optional</span></dt><dd><p>Turn on verbosity</p>
+</dd>
+<dt>n_jobs<span class="classifier">int, optional</span></dt><dd><p>number of jobs to start, if <cite>-1</cite> use number of logical cpu cores.
+This argument will be ignored when the distributed scheduler is
+used
+.. versionadded:: PERSONAL-COPY</p>
+</dd>
+<dt>module<span class="classifier">str, optional</span></dt><dd><p>Parallelization module to use. Default: <code class="docutils literal notranslate"><span class="pre">&quot;multiprocessing&quot;</span></code>.
+.. versionadded:: PERSONAL-COPY</p>
+</dd>
+<dt>method<span class="classifier">str, optional</span></dt><dd><p>Parallelization method to use. This is the Dask scheduler,
+Joblib backend, or the multiprocessing method. Default: <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+.. versionadded:: PERSONAL-COPY</p>
+</dd>
+<dt>n_blocks<span class="classifier">int, optional</span></dt><dd><p>number of blocks to divide trajectory into. If <code class="docutils literal notranslate"><span class="pre">None</span></code> set equal
+to n_jobs or number of available workers in scheduler.
+.. versionadded:: PERSONAL-COPY</p>
+</dd>
+<dt><a href="#id11"><span class="problematic" id="id12">**</span></a>kwargs</dt><dd><p>Other keyword arguments passed to <code class="xref py py-func docutils literal notranslate"><span class="pre">dask.base.compute()</span></code>.</p>
+</dd>
+</dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2.2.0: </span>Added ability to analyze arbitrary frames by passing a list of
+frame indices in the <cite>frames</cite> keyword argument.</p>
+</div>
+</section>
+<section id="id13">
+<h5>Returns<a class="headerlink" href="#id13" title="Permalink to this heading"></a></h5>
+<dl>
+<dt>self<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelAnalysisBase</span></code> instance</span></dt><dd><p>The instance itself.</p>
+</dd>
+</dl>
+</section>
+<section id="id14">
+<h5>Raises<a class="headerlink" href="#id14" title="Permalink to this heading"></a></h5>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>If <cite>frames</cite> is used in conjunction with <cite>start</cite>, <cite>stop</cite>, or <cite>step</cite>.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.rmsd.RMSD.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir_out</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#colvar_parallel.rmsd.RMSD.save" title="Permalink to this definition"></a></dt>
+<dd><p>Save the results of the analysis to a parquet file. The results
+are saved to the <cite>data</cite> directory in the <cite>dir_out</cite> directory.</p>
+<p>This method should only be called after the analysis has been
+run.</p>
+<section id="id15">
+<h5>Parameters<a class="headerlink" href="#id15" title="Permalink to this heading"></a></h5>
+<dl class="simple">
+<dt>dir_out<span class="classifier">str, optional</span></dt><dd><p>The directory to save the results to. If not specified, the
+results are saved to the directory specified in the
+<cite>dir_out</cite> attribute.</p>
+</dd>
+</dl>
+</section>
+<section id="id16">
+<h5>Raises<a class="headerlink" href="#id16" title="Permalink to this heading"></a></h5>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>If no dataframe is found.</p>
+</dd>
+<dt>ValueError</dt><dd><p>If no filename is found.</p>
+</dd>
+<dt>ValueError</dt><dd><p>If no output directory is specified.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="id0">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">colvar_parallel.rmsd.</span></span><span class="sig-name descname"><span class="pre">RMSD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mobile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">superposition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colvar_parallel/rmsd.html#RMSD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="colvar_parallel.base.html#colvar_parallel.base.ParallelAnalysisBase" title="colvar_parallel.base.ParallelAnalysisBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelAnalysisBase</span></code></a></p>
+<p>Parallel RMSD analysis.</p>
+<p>Optimally superimpose the coordinates in the
+<a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/core/groups.html#MDAnalysis.core.groups.AtomGroup" title="(in MDAnalysis v2.5.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">AtomGroup</span></code></a> <cite>mobile</cite> onto <cite>ref</cite> for
+each frame in the trajectory of <cite>mobile</cite>, and calculate the time
+series of the RMSD. The single frame calculation is performed with
+<a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis/rms.html#MDAnalysis.analysis.rms.rmsd" title="(in MDAnalysis v2.5.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">MDAnalysis.analysis.rms.rmsd()</span></code></a> (with <code class="docutils literal notranslate"><span class="pre">superposition=True</span></code>
+by default).</p>
+<section id="id17">
+<h2>Attributes<a class="headerlink" href="#id17" title="Permalink to this heading"></a></h2>
+<dl class="simple">
+<dt>rmsd<span class="classifier">array</span></dt><dd><p>Contains the time series of the RMSD as a <cite>Tx3</cite>
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> array with content <code class="docutils literal notranslate"><span class="pre">[[frame,</span> <span class="pre">time</span>
+<span class="pre">(ps),</span> <span class="pre">RMSD</span> <span class="pre">(Å)],</span> <span class="pre">[...],</span> <span class="pre">...]</span></code>, where <cite>T</cite> is the number of
+time steps selected in the <a class="reference internal" href="#id39" title="colvar_parallel.rmsd.RMSD.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code></a> method.</p>
+</dd>
+</dl>
+</section>
+<section id="id18">
+<h2>Parameters<a class="headerlink" href="#id18" title="Permalink to this heading"></a></h2>
+<dl class="simple">
+<dt>mobile<span class="classifier">AtomGroup</span></dt><dd><p>atoms that are optimally superimposed on <cite>ref</cite> before
+the RMSD is calculated for all atoms. The coordinates
+of <cite>mobile</cite> change with each frame in the trajectory.</p>
+</dd>
+<dt>ref<span class="classifier">AtomGroup</span></dt><dd><p>fixed reference coordinates</p>
+</dd>
+<dt>superposition<span class="classifier">bool, optional</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> perform a RMSD-superposition, <code class="docutils literal notranslate"><span class="pre">False</span></code> only
+calculates the RMSD. The default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</dd>
+</dl>
+</section>
+<section id="id19">
+<h2>See Also<a class="headerlink" href="#id19" title="Permalink to this heading"></a></h2>
+<p>MDAnalysis.analysis.rms.RMSD</p>
+</section>
+<section id="id20">
+<h2>Notes<a class="headerlink" href="#id20" title="Permalink to this heading"></a></h2>
+<p>If you use trajectory data from simulations performed under <em>periodic
+boundary conditions</em> then you <strong>must make your molecules whole</strong> before
+performing RMSD calculations so that the centers of mass of the mobile and
+reference structure are properly superimposed.</p>
+<p>Run the analysis with <a class="reference internal" href="#id39" title="colvar_parallel.rmsd.RMSD.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">RMSD.run()</span></code></a>, which stores the results
+in the array <code class="xref py py-attr docutils literal notranslate"><span class="pre">RMSD.rmsd</span></code>.</p>
+<p>The root mean square deviation <span class="math notranslate nohighlight">\(\rho(t)\)</span> of a group of <span class="math notranslate nohighlight">\(N\)</span>
+atoms relative to a reference structure as a function of time is
+calculated as:</p>
+<div class="math notranslate nohighlight">
+\[\rho(t) = \sqrt{\frac{1}{N} \sum_{i=1}^N \left(\mathbf{x}_i(t)
+                - \mathbf{x}_i^{\text{ref}}\right)^2}\]</div>
+<p>The selected coordinates from <cite>atomgroup</cite> are optimally superimposed
+(translation and rotation) on the <cite>reference</cite> coordinates at each time step
+as to minimize the RMSD.</p>
+<p>At the moment, this class has far fewer features than its serial
+counterpart, <a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis/rms.html#MDAnalysis.analysis.rms.RMSD" title="(in MDAnalysis v2.5.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MDAnalysis.analysis.rms.RMSD</span></code></a>.</p>
+</section>
+<section id="id21">
+<h2>Examples<a class="headerlink" href="#id21" title="Permalink to this heading"></a></h2>
+<p>In this example we will globally fit a protein to a reference
+structure. The example is a DIMS trajectory of adenylate kinase, which
+samples a large closed-to-open transition.</p>
+<p>The trajectory is included in the MDAnalysis test data files. The data in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">RMSD.rmsd</span></code> is plotted with <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html#matplotlib.pyplot.plot" title="(in Matplotlib v3.7.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matplotlib.pyplot.plot()</span></code></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">MDAnalysis</span>
+<span class="kn">from</span> <span class="nn">MDAnalysis.tests.datafiles</span> <span class="kn">import</span> <span class="n">PSF</span><span class="p">,</span> <span class="n">DCD</span><span class="p">,</span> <span class="n">CRD</span>
+<span class="n">mobile</span> <span class="o">=</span> <span class="n">MDAnalysis</span><span class="o">.</span><span class="n">Universe</span><span class="p">(</span><span class="n">PSF</span><span class="p">,</span><span class="n">DCD</span><span class="p">)</span><span class="o">.</span><span class="n">atoms</span>
+<span class="c1"># reference closed AdK (1AKE) (with the default ref_frame=0)</span>
+<span class="n">ref</span> <span class="o">=</span> <span class="n">MDAnalysis</span><span class="o">.</span><span class="n">Universe</span><span class="p">(</span><span class="n">PSF</span><span class="p">,</span><span class="n">DCD</span><span class="p">)</span><span class="o">.</span><span class="n">atoms</span>
+
+<span class="kn">from</span> <span class="nn">colvar_parallel.rms</span> <span class="kn">import</span> <span class="n">RMSD</span>
+
+<span class="n">R</span> <span class="o">=</span> <span class="n">RMSD</span><span class="p">(</span><span class="n">mobile</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span>
+<span class="n">R</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">rmsd</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">rmsd</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># transpose makes it easier for plotting</span>
+<span class="n">time</span> <span class="o">=</span> <span class="n">rmsd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">rmsd</span><span class="p">,</span>  <span class="n">label</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;time (ps)&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;RMSD ($</span><span class="se">\\</span><span class="s2">AA$)&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;rmsd_all_CORE_LID_NMP_ref1AKE.pdf&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Set up the analysis.</p>
+</section>
+<section id="id22">
+<h2>Parameters<a class="headerlink" href="#id22" title="Permalink to this heading"></a></h2>
+<dl class="simple">
+<dt>mobile<span class="classifier">AtomGroup</span></dt><dd><p>atoms that are optimally superimposed on <cite>ref</cite> before
+the RMSD is calculated for all atoms. The coordinates
+of <cite>mobile</cite> change with each frame in the trajectory.</p>
+</dd>
+<dt>ref<span class="classifier">AtomGroup</span></dt><dd><p>fixed reference coordinates</p>
+</dd>
+<dt>label<span class="classifier">str, optional</span></dt><dd><p>Text label for system.</p>
+</dd>
+<dt>superposition<span class="classifier">bool, optional</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> perform a RMSD-superposition, <code class="docutils literal notranslate"><span class="pre">False</span></code> only
+calculates the RMSD. The default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</dd>
+<dt>verbose<span class="classifier">bool, optional</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: print progress bar to the screen; <code class="docutils literal notranslate"><span class="pre">False</span></code>: no
+progress bar. The default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="id23">
+<span class="sig-name descname"><span class="pre">_conclude</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/colvar_parallel/rmsd.html#RMSD._conclude"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id23" title="Permalink to this definition"></a></dt>
+<dd><p>Finalize the results array and set the <cite>rmsd</cite> attribute.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id24">
+<span class="sig-name descname"><span class="pre">_job_block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absolute_frame_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="headerlink" href="#id24" title="Permalink to this definition"></a></dt>
+<dd><p>Helper function to actually setup the Dask tasks</p>
+<section id="id25">
+<h3>Parameters<a class="headerlink" href="#id25" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>absolute_frame_indices<span class="classifier">np.array</span></dt><dd><p>Array of frame indices to analyze. These indices are absolute
+and refer to frame numbers in the trajectory.</p>
+</dd>
+</dl>
+</section>
+<section id="id26">
+<h3>Returns<a class="headerlink" href="#id26" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>np.array</dt><dd><p>Array of results from the analysis of the frames</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id27">
+<span class="sig-name descname"><span class="pre">_prepare</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#id27" title="Permalink to this definition"></a></dt>
+<dd><p>Prepare the analysis class for the single frame analysis.
+This is called once before the analysis is started inside
+the run() method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id28">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_reduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_single_frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#id28" title="Permalink to this definition"></a></dt>
+<dd><p>‘append’ action for a time series</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id29">
+<span class="sig-name descname"><span class="pre">_setup_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajectory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#id29" title="Permalink to this definition"></a></dt>
+<dd><p>Pass a Reader object and define the desired iteration pattern
+through the trajectory</p>
+<section id="id30">
+<h3>Parameters<a class="headerlink" href="#id30" title="Permalink to this heading"></a></h3>
+<dl>
+<dt>trajectory<span class="classifier">mda.Reader</span></dt><dd><p>A trajectory Reader</p>
+</dd>
+<dt>start<span class="classifier">int, optional</span></dt><dd><p>start frame of analysis</p>
+</dd>
+<dt>stop<span class="classifier">int, optional</span></dt><dd><p>stop frame of analysis</p>
+</dd>
+<dt>step<span class="classifier">int, optional</span></dt><dd><p>number of frames to skip between each analysed frame</p>
+</dd>
+<dt>frames<span class="classifier">array_like, optional</span></dt><dd><p>array of integers or booleans to slice trajectory; cannot be
+combined with <cite>start</cite>, <cite>stop</cite>, <cite>step</cite></p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.2.0.</span></p>
+</div>
+</dd>
+</dl>
+</section>
+<section id="id31">
+<h3>Raises<a class="headerlink" href="#id31" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>if <em>both</em> <cite>frames</cite> and at least one of <cite>start</cite>, <cite>stop</cite>, or <cite>frames</cite>
+is provided (i.e., set to another value than <code class="docutils literal notranslate"><span class="pre">None</span></code>)</p>
+</dd>
+</dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0: </span>Added .frames and .times arrays as attributes</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2.2.0: </span>Added ability to iterate through trajectory by passing a list of
+frame indices in the <cite>frames</cite> keyword argument</p>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id32">
+<span class="sig-name descname"><span class="pre">_single_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/colvar_parallel/rmsd.html#RMSD._single_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id32" title="Permalink to this definition"></a></dt>
+<dd><p>Analyze a single frame in the trajectory.</p>
+<section id="id33">
+<h3>Parameters<a class="headerlink" href="#id33" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>idx_frame: int</dt><dd><p>Index of the frame to analyze.</p>
+</dd>
+</dl>
+</section>
+<section id="id34">
+<h3>Returns<a class="headerlink" href="#id34" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>np.array</dt><dd><p>The frame index, simulation time, and RMSD from the reference
+structure.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id35">
+<span class="sig-name descname"><span class="pre">merge_external_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'time'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#id35" title="Permalink to this definition"></a></dt>
+<dd><p>Merge external data with the results of the analysis</p>
+<section id="id36">
+<h3>Parameters<a class="headerlink" href="#id36" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>df<span class="classifier">pd.DataFrame</span></dt><dd><p>Dataframe containing the data to merge</p>
+</dd>
+<dt>col<span class="classifier">str, optional</span></dt><dd><p>Column name to merge on, by default “time”</p>
+</dd>
+</dl>
+</section>
+<section id="id37">
+<h3>Returns<a class="headerlink" href="#id37" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>pd.DataFrame</dt><dd><p>Dataframe with merged data</p>
+</dd>
+</dl>
+</section>
+<section id="id38">
+<h3>Raises<a class="headerlink" href="#id38" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>If no results are present</p>
+</dd>
+<dt>ValueError</dt><dd><p>If no data is merged</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id39">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dask'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="colvar_parallel.base.html#colvar_parallel.base.ParallelAnalysisBase" title="colvar_parallel.base.ParallelAnalysisBase"><span class="pre">ParallelAnalysisBase</span></a></span></span><a class="headerlink" href="#id39" title="Permalink to this definition"></a></dt>
+<dd><p>Perform the calculation</p>
+<section id="id40">
+<h3>Parameters<a class="headerlink" href="#id40" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>start<span class="classifier">int, optional</span></dt><dd><p>start frame of analysis</p>
+</dd>
+<dt>stop<span class="classifier">int, optional</span></dt><dd><p>stop frame of analysis</p>
+</dd>
+<dt>step<span class="classifier">int, optional</span></dt><dd><p>number of frames to skip between each analysed frame</p>
+</dd>
+<dt>frames<span class="classifier">array_like, optional</span></dt><dd><p>array of integers or booleans to slice trajectory; <cite>frames</cite> can
+only be used <em>instead</em> of <cite>start</cite>, <cite>stop</cite>, and <cite>step</cite>. Setting
+<em>both</em> <cite>frames</cite> and at least one of <cite>start</cite>, <cite>stop</cite>, <cite>step</cite> to a
+non-default value will raise a <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.11)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>.
+.. versionadded:: 2.2.0</p>
+</dd>
+<dt>verbose<span class="classifier">bool, optional</span></dt><dd><p>Turn on verbosity</p>
+</dd>
+<dt>n_jobs<span class="classifier">int, optional</span></dt><dd><p>number of jobs to start, if <cite>-1</cite> use number of logical cpu cores.
+This argument will be ignored when the distributed scheduler is
+used
+.. versionadded:: PERSONAL-COPY</p>
+</dd>
+<dt>module<span class="classifier">str, optional</span></dt><dd><p>Parallelization module to use. Default: <code class="docutils literal notranslate"><span class="pre">&quot;multiprocessing&quot;</span></code>.
+.. versionadded:: PERSONAL-COPY</p>
+</dd>
+<dt>method<span class="classifier">str, optional</span></dt><dd><p>Parallelization method to use. This is the Dask scheduler,
+Joblib backend, or the multiprocessing method. Default: <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+.. versionadded:: PERSONAL-COPY</p>
+</dd>
+<dt>n_blocks<span class="classifier">int, optional</span></dt><dd><p>number of blocks to divide trajectory into. If <code class="docutils literal notranslate"><span class="pre">None</span></code> set equal
+to n_jobs or number of available workers in scheduler.
+.. versionadded:: PERSONAL-COPY</p>
+</dd>
+<dt><a href="#id41"><span class="problematic" id="id42">**</span></a>kwargs</dt><dd><p>Other keyword arguments passed to <code class="xref py py-func docutils literal notranslate"><span class="pre">dask.base.compute()</span></code>.</p>
+</dd>
+</dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2.2.0: </span>Added ability to analyze arbitrary frames by passing a list of
+frame indices in the <cite>frames</cite> keyword argument.</p>
+</div>
+</section>
+<section id="id43">
+<h3>Returns<a class="headerlink" href="#id43" title="Permalink to this heading"></a></h3>
+<dl>
+<dt>self<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelAnalysisBase</span></code> instance</span></dt><dd><p>The instance itself.</p>
+</dd>
+</dl>
+</section>
+<section id="id44">
+<h3>Raises<a class="headerlink" href="#id44" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>If <cite>frames</cite> is used in conjunction with <cite>start</cite>, <cite>stop</cite>, or <cite>step</cite>.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id45">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir_out</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#id45" title="Permalink to this definition"></a></dt>
+<dd><p>Save the results of the analysis to a parquet file. The results
+are saved to the <cite>data</cite> directory in the <cite>dir_out</cite> directory.</p>
+<p>This method should only be called after the analysis has been
+run.</p>
+<section id="id46">
+<h3>Parameters<a class="headerlink" href="#id46" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>dir_out<span class="classifier">str, optional</span></dt><dd><p>The directory to save the results to. If not specified, the
+results are saved to the directory specified in the
+<cite>dir_out</cite> attribute.</p>
+</dd>
+</dl>
+</section>
+<section id="id47">
+<h3>Raises<a class="headerlink" href="#id47" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>If no dataframe is found.</p>
+</dd>
+<dt>ValueError</dt><dd><p>If no filename is found.</p>
+</dd>
+<dt>ValueError</dt><dd><p>If no output directory is specified.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="colvar_parallel.rdf.html" class="btn btn-neutral float-left" title="colvar_parallel.rdf module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="colvar_parallel.rmsdpair.html" class="btn btn-neutral float-right" title="colvar_parallel.rmsdpair module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Alec Glisman.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

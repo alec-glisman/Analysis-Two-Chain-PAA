@@ -1,0 +1,81 @@
+# MacOSX
+.DS_Store
+*.DS_Store
+
+# virtual environments
+env/**
+
+# build directories
+build/**
+cache/**
+
+# PLUMED input files
+**/*COLVAR-*
+**/*output/**
+
+# CV calculations
+**/plumed-input
+**/plumed-analysis
+**/gmx_cv
+
+# caches
+**/dask-worker-space
+*.cache
+**/.pytest_cache/**
+*.pyc
+*.pbz2
+*.pkl
+*.db
+profile.txt
+*.tar.xz
+*.pkl.xz
+
+# rendering
+*.eps
+*.png
+*.dat
+*.tga
+*.pdf
+*.vmd
+*.moly
+**/movies/*
+
+# movies
+*.mpg
+*.mp4
+
+# data files
+**/output*
+analysis/**/data
+analysis/**/data-clean/*
+\#*\#
+*.cpt
+*.edr
+*.gro
+*.log
+*.mdp
+*.out
+*.pdb
+*.ndx
+*.tpr
+*.trr
+*.xml
+*.xtc
+*.xvg
+*.xpm
+*.csv
+*.npz
+*.parquet
+
+# slurm
+*.err
+*.out
+
+# Keep tutorial files
+!tutorials/**
+
+# Keep dat files inside all notebooks directories
+!**/notebooks/*.dat
+
+# Keep gitignore files
+!**/.gitkeep

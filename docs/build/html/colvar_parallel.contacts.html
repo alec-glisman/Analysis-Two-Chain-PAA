@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>colvar_parallel.contacts module &mdash; Analysis Two Chain PAA v2.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="colvar_parallel.dihedrals module" href="colvar_parallel.dihedrals.html" />
+    <link rel="prev" title="colvar_parallel.contactmatrix module" href="colvar_parallel.contactmatrix.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Analysis Two Chain PAA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="analysis_helpers.html">analysis_helpers package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="colvar_parallel.html">colvar_parallel package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="colvar_parallel.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.base.html">colvar_parallel.base module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.contactmatrix.html">colvar_parallel.contactmatrix module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">colvar_parallel.contacts module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#colvar_parallel.contacts.Contacts"><code class="docutils literal notranslate"><span class="pre">Contacts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#colvar_parallel.contacts.coordination_rational"><code class="docutils literal notranslate"><span class="pre">coordination_rational()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.dihedrals.html">colvar_parallel.dihedrals module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.hbonds.html">colvar_parallel.hbonds module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.polymerlengths.html">colvar_parallel.polymerlengths module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.rdf.html">colvar_parallel.rdf module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.rmsd.html">colvar_parallel.rmsd module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="colvar_parallel.rmsdpair.html">colvar_parallel.rmsdpair module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="colvar_parallel.html#module-colvar_parallel">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">figures package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stats.html">stats package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">utils package</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Key files:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="colvar_parallel.base.html">colvar_parallel.base module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stats.block_error.html">stats.block_error module</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">External links:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://www.dask.org/get-started">Dask</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/quickstart.html">MDAnalysis Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/README.html">MDAnalysis Examples</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis_modules.html">MDAnalysis Analysis Modules</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://www.plumed.org/doc-v2.8/user-doc/html/tutorials.html">Plumed Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Analysis Two Chain PAA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="colvar_parallel.html">colvar_parallel package</a></li>
+      <li class="breadcrumb-item active">colvar_parallel.contacts module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/colvar_parallel.contacts.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-colvar_parallel.contacts">
+<span id="colvar-parallel-contacts-module"></span><h1>colvar_parallel.contacts module<a class="headerlink" href="#module-colvar_parallel.contacts" title="Permalink to this heading"></a></h1>
+<p>Author: Alec Glisman (GitHub: &#64;alec-glisman)
+Date: 2023-03-16
+Description: Native contacts calculation.</p>
+<p>This module calculates the coordination number for each reference atom
+with respect to a set of coordinating atoms with Dask parallelization.
+The class inherits from <code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelAnalysisBase</span></code>. The <cite>run</cite> method
+calculates desired quantities. The <cite>save</cite> method saves the results to a
+parquet file. The <cite>figures</cite> method plots the results.</p>
+<p>The <cite>_single_frame</cite> is similar to the method of the same name in
+the default <a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis/contacts.html#MDAnalysis.analysis.contacts.Contacts" title="(in MDAnalysis v2.5.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MDAnalysis.analysis.contacts.Contacts</span></code></a> class. I added
+functionality for weighted frames, center of mass distributions, and
+excluding frames that do not meet other input boolean criteria.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.Contacts">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">colvar_parallel.contacts.</span></span><span class="sig-name descname"><span class="pre">Contacts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/core/universe.html#MDAnalysis.core.universe.Universe" title="(in MDAnalysis v2.5.0)"><span class="pre">Universe</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">select</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/core/groups.html#MDAnalysis.core.groups.AtomGroup" title="(in MDAnalysis v2.5.0)"><span class="pre">MDAnalysis.core.groups.AtomGroup</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/core/groups.html#MDAnalysis.core.groups.AtomGroup" title="(in MDAnalysis v2.5.0)"><span class="pre">MDAnalysis.core.groups.AtomGroup</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'hard_cut'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">basekwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colvar_parallel/contacts.html#Contacts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#colvar_parallel.contacts.Contacts" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="colvar_parallel.base.html#colvar_parallel.base.ParallelAnalysisBase" title="colvar_parallel.base.ParallelAnalysisBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelAnalysisBase</span></code></a></p>
+<p>Calculate contacts based observables.
+The standard methods used in this class calculate the number of native
+contacts <em>Q</em> from a trajectory.
+.. rubric:: Contact API
+By defining your own method it is possible to calculate other observables
+that only depend on the distances and a possible reference distance. The
+<strong>Contact API</strong> prescribes that this method must be a function with call
+signature <code class="docutils literal notranslate"><span class="pre">func(r,</span> <span class="pre">r0,</span> <span class="pre">**kwargs)</span></code> and must be provided in the keyword
+argument <cite>method</cite>.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading"></a></h2>
+<dl>
+<dt>results.timeseries<span class="classifier">numpy.ndarray</span></dt><dd><p>2D array containing <em>Q</em> for all refgroup pairs and analyzed frames</p>
+</dd>
+<dt>timeseries<span class="classifier">numpy.ndarray</span></dt><dd><p>Alias to the <code class="xref py py-attr docutils literal notranslate"><span class="pre">results.timeseries</span></code> attribute.
+.. deprecated:: 2.0.0</p>
+<blockquote>
+<div><p>Will be removed in MDAnalysis 3.0.0. Please use
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">results.timeseries</span></code> instead.</p>
+</div></blockquote>
+</dd>
+</dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0: </span><code class="docutils literal notranslate"><span class="pre">save()</span></code> method has been removed. Use <code class="docutils literal notranslate"><span class="pre">np.savetxt()</span></code> on
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">Contacts.results.timeseries</span></code> instead.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0: </span>added <code class="docutils literal notranslate"><span class="pre">pbc</span></code> attribute to calculate distances using PBC.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2.0.0: </span><code class="xref py py-attr docutils literal notranslate"><span class="pre">timeseries</span></code> results are now stored in a
+<a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis/base.html#MDAnalysis.analysis.base.Results" title="(in MDAnalysis v2.5.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MDAnalysis.analysis.base.Results</span></code></a> instance.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2.2.0: </span><a class="reference internal" href="#colvar_parallel.contacts.Contacts" title="colvar_parallel.contacts.Contacts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Contacts</span></code></a> accepts both AtomGroup and string for <cite>select</cite></p>
+</div>
+</section>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this heading"></a></h2>
+<dl class="simple">
+<dt>u<span class="classifier">Universe</span></dt><dd><p>trajectory</p>
+</dd>
+<dt>select<span class="classifier">tuple(AtomGroup, AtomGroup) | tuple(string, string)</span></dt><dd><p>two contacting groups that change over time</p>
+</dd>
+<dt>method<span class="classifier">string | callable (optional)</span></dt><dd><p>Can either be one of <code class="docutils literal notranslate"><span class="pre">[&quot;hard_cut&quot;</span> <span class="pre">,</span> <span class="pre">&quot;soft_cut&quot;,</span> <span class="pre">&quot;radius_cut&quot;,</span> <span class="pre">&quot;rational&quot;,</span> <span class="pre">&quot;6_12&quot;]</span></code>
+or a callable with call signature <code class="docutils literal notranslate"><span class="pre">func(r,</span> <span class="pre">r0,</span> <span class="pre">**kwargs)</span></code> (the “Contacts API”).</p>
+</dd>
+<dt>radius<span class="classifier">float, optional (4.5 Angstroms)</span></dt><dd><p>radius within which contacts exist in refgroup</p>
+</dd>
+<dt>label<span class="classifier">str, optional</span></dt><dd><p>text label for system. default is none.</p>
+</dd>
+<dt>verbose<span class="classifier">bool (optional)</span></dt><dd><p>Show detailed progress of the calculation if set to <code class="docutils literal notranslate"><span class="pre">True</span></code>; the
+default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+<dt>kwargs<span class="classifier">dict, optional</span></dt><dd><p>dictionary of additional kwargs passed to <cite>method</cite>. Check
+respective functions for reasonable values.</p>
+</dd>
+</dl>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0: </span>Changed <cite>selection</cite> keyword to <cite>select</cite></p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.Contacts._conclude">
+<span class="sig-name descname"><span class="pre">_conclude</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#colvar_parallel.contacts.Contacts._conclude" title="Permalink to this definition"></a></dt>
+<dd><p>Finalize the results of the calculation. This is called once
+after the analysis is finished inside the run() method. The method
+concatenates the results from the single frame analysis and
+input weights dataframe, if provided.</p>
+<section id="raises">
+<h3>Raises<a class="headerlink" href="#raises" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>If no results are found.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.Contacts._get_atomgroup">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_get_atomgroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">updating</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colvar_parallel/contacts.html#Contacts._get_atomgroup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#colvar_parallel.contacts.Contacts._get_atomgroup" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.Contacts._job_block">
+<span class="sig-name descname"><span class="pre">_job_block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absolute_frame_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="headerlink" href="#colvar_parallel.contacts.Contacts._job_block" title="Permalink to this definition"></a></dt>
+<dd><p>Helper function to actually setup the Dask tasks</p>
+<section id="id1">
+<h3>Parameters<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>absolute_frame_indices<span class="classifier">np.array</span></dt><dd><p>Array of frame indices to analyze. These indices are absolute
+and refer to frame numbers in the trajectory.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>np.array</dt><dd><p>Array of results from the analysis of the frames</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.Contacts._prepare">
+<span class="sig-name descname"><span class="pre">_prepare</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#colvar_parallel.contacts.Contacts._prepare" title="Permalink to this definition"></a></dt>
+<dd><p>Prepare the analysis class for the single frame analysis.
+This is called once before the analysis is started inside
+the run() method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.Contacts._reduce">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_reduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_single_frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#colvar_parallel.contacts.Contacts._reduce" title="Permalink to this definition"></a></dt>
+<dd><p>‘append’ action for a time series</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.Contacts._setup_frames">
+<span class="sig-name descname"><span class="pre">_setup_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajectory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#colvar_parallel.contacts.Contacts._setup_frames" title="Permalink to this definition"></a></dt>
+<dd><p>Pass a Reader object and define the desired iteration pattern
+through the trajectory</p>
+<section id="id2">
+<h3>Parameters<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<dl>
+<dt>trajectory<span class="classifier">mda.Reader</span></dt><dd><p>A trajectory Reader</p>
+</dd>
+<dt>start<span class="classifier">int, optional</span></dt><dd><p>start frame of analysis</p>
+</dd>
+<dt>stop<span class="classifier">int, optional</span></dt><dd><p>stop frame of analysis</p>
+</dd>
+<dt>step<span class="classifier">int, optional</span></dt><dd><p>number of frames to skip between each analysed frame</p>
+</dd>
+<dt>frames<span class="classifier">array_like, optional</span></dt><dd><p>array of integers or booleans to slice trajectory; cannot be
+combined with <cite>start</cite>, <cite>stop</cite>, <cite>step</cite></p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.2.0.</span></p>
+</div>
+</dd>
+</dl>
+</section>
+<section id="id3">
+<h3>Raises<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>if <em>both</em> <cite>frames</cite> and at least one of <cite>start</cite>, <cite>stop</cite>, or <cite>frames</cite>
+is provided (i.e., set to another value than <code class="docutils literal notranslate"><span class="pre">None</span></code>)</p>
+</dd>
+</dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0: </span>Added .frames and .times arrays as attributes</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2.2.0: </span>Added ability to iterate through trajectory by passing a list of
+frame indices in the <cite>frames</cite> keyword argument</p>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.Contacts._single_frame">
+<span class="sig-name descname"><span class="pre">_single_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/colvar_parallel/contacts.html#Contacts._single_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#colvar_parallel.contacts.Contacts._single_frame" title="Permalink to this definition"></a></dt>
+<dd><p>Analyze a single frame in the trajectory.</p>
+<section id="id4">
+<h3>Parameters<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>idx_frame: int</dt><dd><p>Index of the frame to analyze.</p>
+</dd>
+</dl>
+</section>
+<section id="id5">
+<h3>Returns<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>np.array</dt><dd><p>The weight, the volume of the box, and the histogram of the
+pair distances at the current frame.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.Contacts.figures">
+<span class="sig-name descname"><span class="pre">figures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'png'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">matplotlib.pyplot.figure</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">matplotlib.pyplot.axes</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/colvar_parallel/contacts.html#Contacts.figures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#colvar_parallel.contacts.Contacts.figures" title="Permalink to this definition"></a></dt>
+<dd><p>Plot the radial distribution function and the potential of mean
+force. The figures are saved to the <cite>figures</cite> directory in the
+<cite>dir_out</cite> directory. This is a wrapper for all plotting methods.</p>
+<p>This method should only be called after the analysis has been
+run.</p>
+<section id="id6">
+<h3>Parameters<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>title<span class="classifier">str, optional</span></dt><dd><p>The title of the plots.</p>
+</dd>
+<dt>ext<span class="classifier">str, optional</span></dt><dd><p>The file extension of the saved figures. Default is “png”.</p>
+</dd>
+</dl>
+</section>
+<section id="id7">
+<h3>Returns<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>tuple[plt.figure, plt.axes]</dt><dd><p>The figures and axes of the plots.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.Contacts.merge_external_data">
+<span class="sig-name descname"><span class="pre">merge_external_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'time'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#colvar_parallel.contacts.Contacts.merge_external_data" title="Permalink to this definition"></a></dt>
+<dd><p>Merge external data with the results of the analysis</p>
+<section id="id8">
+<h3>Parameters<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>df<span class="classifier">pd.DataFrame</span></dt><dd><p>Dataframe containing the data to merge</p>
+</dd>
+<dt>col<span class="classifier">str, optional</span></dt><dd><p>Column name to merge on, by default “time”</p>
+</dd>
+</dl>
+</section>
+<section id="id9">
+<h3>Returns<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>pd.DataFrame</dt><dd><p>Dataframe with merged data</p>
+</dd>
+</dl>
+</section>
+<section id="id10">
+<h3>Raises<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>If no results are present</p>
+</dd>
+<dt>ValueError</dt><dd><p>If no data is merged</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.Contacts.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dask'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="colvar_parallel.base.html#colvar_parallel.base.ParallelAnalysisBase" title="colvar_parallel.base.ParallelAnalysisBase"><span class="pre">ParallelAnalysisBase</span></a></span></span><a class="headerlink" href="#colvar_parallel.contacts.Contacts.run" title="Permalink to this definition"></a></dt>
+<dd><p>Perform the calculation</p>
+<section id="id11">
+<h3>Parameters<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>start<span class="classifier">int, optional</span></dt><dd><p>start frame of analysis</p>
+</dd>
+<dt>stop<span class="classifier">int, optional</span></dt><dd><p>stop frame of analysis</p>
+</dd>
+<dt>step<span class="classifier">int, optional</span></dt><dd><p>number of frames to skip between each analysed frame</p>
+</dd>
+<dt>frames<span class="classifier">array_like, optional</span></dt><dd><p>array of integers or booleans to slice trajectory; <cite>frames</cite> can
+only be used <em>instead</em> of <cite>start</cite>, <cite>stop</cite>, and <cite>step</cite>. Setting
+<em>both</em> <cite>frames</cite> and at least one of <cite>start</cite>, <cite>stop</cite>, <cite>step</cite> to a
+non-default value will raise a <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.11)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>.
+.. versionadded:: 2.2.0</p>
+</dd>
+<dt>verbose<span class="classifier">bool, optional</span></dt><dd><p>Turn on verbosity</p>
+</dd>
+<dt>n_jobs<span class="classifier">int, optional</span></dt><dd><p>number of jobs to start, if <cite>-1</cite> use number of logical cpu cores.
+This argument will be ignored when the distributed scheduler is
+used
+.. versionadded:: PERSONAL-COPY</p>
+</dd>
+<dt>module<span class="classifier">str, optional</span></dt><dd><p>Parallelization module to use. Default: <code class="docutils literal notranslate"><span class="pre">&quot;multiprocessing&quot;</span></code>.
+.. versionadded:: PERSONAL-COPY</p>
+</dd>
+<dt>method<span class="classifier">str, optional</span></dt><dd><p>Parallelization method to use. This is the Dask scheduler,
+Joblib backend, or the multiprocessing method. Default: <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+.. versionadded:: PERSONAL-COPY</p>
+</dd>
+<dt>n_blocks<span class="classifier">int, optional</span></dt><dd><p>number of blocks to divide trajectory into. If <code class="docutils literal notranslate"><span class="pre">None</span></code> set equal
+to n_jobs or number of available workers in scheduler.
+.. versionadded:: PERSONAL-COPY</p>
+</dd>
+<dt><a href="#id12"><span class="problematic" id="id13">**</span></a>kwargs</dt><dd><p>Other keyword arguments passed to <code class="xref py py-func docutils literal notranslate"><span class="pre">dask.base.compute()</span></code>.</p>
+</dd>
+</dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2.2.0: </span>Added ability to analyze arbitrary frames by passing a list of
+frame indices in the <cite>frames</cite> keyword argument.</p>
+</div>
+</section>
+<section id="id14">
+<h3>Returns<a class="headerlink" href="#id14" title="Permalink to this heading"></a></h3>
+<dl>
+<dt>self<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelAnalysisBase</span></code> instance</span></dt><dd><p>The instance itself.</p>
+</dd>
+</dl>
+</section>
+<section id="id15">
+<h3>Raises<a class="headerlink" href="#id15" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>If <cite>frames</cite> is used in conjunction with <cite>start</cite>, <cite>stop</cite>, or <cite>step</cite>.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.Contacts.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir_out</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#colvar_parallel.contacts.Contacts.save" title="Permalink to this definition"></a></dt>
+<dd><p>Save the results of the analysis to a parquet file. The results
+are saved to the <cite>data</cite> directory in the <cite>dir_out</cite> directory.</p>
+<p>This method should only be called after the analysis has been
+run.</p>
+<section id="id16">
+<h3>Parameters<a class="headerlink" href="#id16" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>dir_out<span class="classifier">str, optional</span></dt><dd><p>The directory to save the results to. If not specified, the
+results are saved to the directory specified in the
+<cite>dir_out</cite> attribute.</p>
+</dd>
+</dl>
+</section>
+<section id="id17">
+<h3>Raises<a class="headerlink" href="#id17" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>ValueError</dt><dd><p>If no dataframe is found.</p>
+</dd>
+<dt>ValueError</dt><dd><p>If no filename is found.</p>
+</dd>
+<dt>ValueError</dt><dd><p>If no output directory is specified.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="colvar_parallel.contacts.coordination_rational">
+<span class="sig-prename descclassname"><span class="pre">colvar_parallel.contacts.</span></span><span class="sig-name descname"><span class="pre">coordination_rational</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">r0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">d0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/colvar_parallel/contacts.html#coordination_rational"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#colvar_parallel.contacts.coordination_rational" title="Permalink to this definition"></a></dt>
+<dd><blockquote>
+<div><p>Calculate the coordination number for a given distance r, with
+characteristic distance r0, using a rational switching function.
+The function is defined as:
+.. math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">C</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">=</span> \<span class="n">frac</span><span class="p">{</span><span class="mi">1</span> <span class="o">-</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>rac{r - d_0}{r_0})^n}{1 -
+rac{r - d_0}{r_0})^m}</p>
+<blockquote>
+<div><dl class="simple">
+<dt>r<span class="classifier">float</span></dt><dd><p>The distance at which to calculate the coordination number</p>
+</dd>
+<dt>r0<span class="classifier">float</span></dt><dd><p>The characteristic distance.</p>
+</dd>
+<dt>d0<span class="classifier">float, optional</span></dt><dd><p>Offset for the distance. Default is 0.0</p>
+</dd>
+<dt>n<span class="classifier">int, optional</span></dt><dd><p>The power to which the distance is raised in the numerator.
+Default is 6.</p>
+</dd>
+<dt>m<span class="classifier">int, optional</span></dt><dd><p>The power to which the distance is raised in the denominator.
+Default is 0, which is changed to 2 * n.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>float</dt><dd><p>The coordination number at distance r</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="colvar_parallel.contactmatrix.html" class="btn btn-neutral float-left" title="colvar_parallel.contactmatrix module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="colvar_parallel.dihedrals.html" class="btn btn-neutral float-right" title="colvar_parallel.dihedrals module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Alec Glisman.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

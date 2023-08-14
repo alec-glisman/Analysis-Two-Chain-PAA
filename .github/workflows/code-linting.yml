@@ -1,0 +1,40 @@
+---
+name: Linting
+on: [pull_request]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+
+    steps:
+      - name: Fetch actions (v3)
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Remove docs before linting
+        run: rm -rf docs
+
+      - name: Remove tutorials before linting
+        run: rm -rf tutorials
+      
+      - name: Remove archived code before linting
+        run: rm -rf src/archive
+
+      - name: Remove .vscode before linting
+        run: rm -rf .vscode
+
+      - name: Remove .github before linting
+        run: rm -rf .github
+
+      - name: Super-Linter
+        uses: github/super-linter@v4.10.1
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_HTML: false
+          VALIDATE_CSS: false
+          VALIDATE_JAVASCRIPT_ES: false
+          VALIDATE_JAVASCRIPT_STANDARD: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

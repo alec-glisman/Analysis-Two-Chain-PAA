@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>analysis_helpers.plumed_two_chain &mdash; Analysis Two Chain PAA v2.0.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Analysis Two Chain PAA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../analysis_helpers.html">analysis_helpers package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../colvar_parallel.html">colvar_parallel package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../figures.html">figures package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../stats.html">stats package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">utils package</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Key files:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../colvar_parallel.base.html">colvar_parallel.base module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../stats.block_error.html">stats.block_error module</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">External links:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://www.dask.org/get-started">Dask</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/quickstart.html">MDAnalysis Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://userguide.mdanalysis.org/stable/examples/README.html">MDAnalysis Examples</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://docs.mdanalysis.org/stable/documentation_pages/analysis_modules.html">MDAnalysis Analysis Modules</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://www.plumed.org/doc-v2.8/user-doc/html/tutorials.html">Plumed Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Analysis Two Chain PAA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">analysis_helpers.plumed_two_chain</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for analysis_helpers.plumed_two_chain</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Alec Glisman (GitHub: @alec-glisman)</span>
+<span class="sd">Date: 2023-03-09</span>
+<span class="sd">Description: Functions to load, parse, modify, and plot data from the Plumed output</span>
+<span class="sd">files generated during the MD simulations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Standard library</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="c1"># Third party packages</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">plumed</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">integrate</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="c1"># Internal dependencies</span>
+<span class="kn">from</span> <span class="nn">figures.style</span> <span class="kn">import</span> <span class="n">set_style</span>
+<span class="kn">from</span> <span class="nn">stats.block_error</span> <span class="kn">import</span> <span class="n">BlockError</span>
+<span class="kn">from</span> <span class="nn">utils.logs</span> <span class="kn">import</span> <span class="n">setup_logging</span>
+
+
+<div class="viewcode-block" id="plumed_df"><a class="viewcode-back" href="../../analysis_helpers.plumed_two_chain.html#analysis_helpers.plumed_two_chain.plumed_df">[docs]</a><span class="k">def</span> <span class="nf">plumed_df</span><span class="p">(</span>
+    <span class="n">working_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">kbt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">t_ps_remove</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="n">refresh</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load Plumed data from a directory. Data is automatically saved to a</span>
+<span class="sd">    parquet file for faster loading in the future. If the parquet file</span>
+<span class="sd">    exists, it is loaded instead re-parsing the data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    working_dir : str</span>
+<span class="sd">        Path to the desired working directory for data output</span>
+<span class="sd">    data_dir : str</span>
+<span class="sd">        Path to the directory containing the plumed data files</span>
+<span class="sd">    tag : str</span>
+<span class="sd">        Unique tag for the data set</span>
+<span class="sd">    kbt : float</span>
+<span class="sd">        Boltzmann constant times the temperature of the system</span>
+<span class="sd">        in units of kJ/mol</span>
+<span class="sd">    refresh : bool, optional</span>
+<span class="sd">        If True, the data is reloaded from the parquet file</span>
+<span class="sd">        instead of the original data files, by default False</span>
+<span class="sd">    verbose : bool, optional</span>
+<span class="sd">        If True, the logging level is set to DEBUG, by default False</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        Dataframe containing the Plumed data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;plumed_df.log&quot;</span><span class="p">)</span>
+
+    <span class="c1"># create plumed main directory and change to it</span>
+    <span class="n">dir_plumed</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">working_dir</span><span class="si">}</span><span class="s2">/plumed&quot;</span><span class="p">)</span>
+    <span class="n">dir_plumed</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># create plumed data sub-directory and change to it</span>
+    <span class="n">dir_plumed_data</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dir_plumed</span><span class="si">}</span><span class="s2">/data&quot;</span><span class="p">)</span>
+    <span class="n">dir_plumed_data</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dir_plumed_data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Moved to directory: </span><span class="si">{</span><span class="n">dir_plumed_data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># load previously saved data if it exists</span>
+    <span class="n">df_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;df_plumed_</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">.parquet&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">refresh</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">df_filename</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading data from </span><span class="si">{</span><span class="n">df_filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">df_filename</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">working_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data not found. Loading from original files.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># add base replica number to HREMD simulation data</span>
+    <span class="k">if</span> <span class="s2">&quot;hremd&quot;</span> <span class="ow">in</span> <span class="n">tag</span><span class="p">:</span>
+        <span class="n">path_append</span> <span class="o">=</span> <span class="s2">&quot;.0&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Appending </span><span class="si">{</span><span class="n">path_append</span><span class="si">}</span><span class="s2"> to file paths&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">path_append</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="c1"># find plumed bias and collective variable files</span>
+    <span class="n">d_data</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+    <span class="n">colvar</span> <span class="o">=</span> <span class="n">d_data</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;COLVAR</span><span class="si">{</span><span class="n">path_append</span><span class="si">}</span><span class="s2">.dat&quot;</span>
+    <span class="n">bias_walls</span> <span class="o">=</span> <span class="n">d_data</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;BIAS_WALLS</span><span class="si">{</span><span class="n">path_append</span><span class="si">}</span><span class="s2">.dat&quot;</span>
+    <span class="n">bias_metad</span> <span class="o">=</span> <span class="n">d_data</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;BIAS_METAD</span><span class="si">{</span><span class="n">path_append</span><span class="si">}</span><span class="s2">.dat&quot;</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">colvar</span><span class="p">,</span> <span class="n">bias_walls</span><span class="p">,</span> <span class="n">bias_metad</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;COLVAR must exist. Error with </span><span class="si">{</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">files</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">files</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;BIAS_WALLS not found. Skipping.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">files</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;BIAS_METAD not found. Skipping.&quot;</span><span class="p">)</span>
+        <span class="n">files</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># load plumed files</span>
+    <span class="n">dfs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">plumed</span><span class="o">.</span><span class="n">read_as_pandas</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">enable_constants</span><span class="o">=</span><span class="s2">&quot;columns&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">pd</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">ParserError</span><span class="p">:</span>
+            <span class="c1"># first line of file contains column names</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">header</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">:]</span>  <span class="c1"># remove &quot;#!&quot; FIELDS</span>
+            <span class="n">n_cols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;WARNING: Error reading </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">. Attempting manual load.&quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Columns: </span><span class="si">{</span><span class="n">header</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># create dataframe from file</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
+                <span class="n">names</span><span class="o">=</span><span class="n">header</span><span class="p">,</span>
+                <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span>
+                <span class="n">delim_whitespace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">skipinitialspace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">usecols</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_cols</span><span class="p">)),</span>
+            <span class="p">)</span>
+
+        <span class="c1"># clean data</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="c1"># convert inf to nan</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">replace</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="c1"># drop nan rows</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+        <span class="c1"># drop duplicate rows</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="s2">&quot;last&quot;</span><span class="p">)</span>
+        <span class="c1"># drop first nanosecond of data</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">t_ps_remove</span><span class="p">]</span>
+
+        <span class="c1"># data check</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Empty dataframe for </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">dfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">dfs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tag</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dfs</span><span class="p">)):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">dfs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+
+    <span class="c1"># convert bias columns to np.float64</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">astype</span><span class="p">({</span><span class="s2">&quot;lwall.bias&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="s2">&quot;uwall.bias&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">})</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">astype</span><span class="p">({</span><span class="s2">&quot;metad.rbias&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">})</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># add metad.rbias column if it doesn&#39;t exist</span>
+    <span class="k">if</span> <span class="s2">&quot;metad.rbias&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;WARNING: metad.rbias column not found. Setting to zero.&quot;</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;metad.rbias&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># sum bias columns</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s2">&quot;lwall.bias&quot;</span><span class="p">,</span> <span class="s2">&quot;uwall.bias&quot;</span><span class="p">,</span> <span class="s2">&quot;metad.rbias&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;WARNING: Bias columns not found, setting equal to zero. </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="c1"># boltzmann weight of bias</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;bias_nondim&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">kbt</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;bias_nondim&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="c1"># normalize weights to maximum of 1</span>
+    <span class="n">max_weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">])</span>
+    <span class="n">norm_weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">],</span> <span class="n">max_weight</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">norm_weight</span>
+
+    <span class="c1"># account for periodic boundary conditions</span>
+    <span class="k">if</span> <span class="s2">&quot;d12&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">box_length</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;([0-9]*[.])?[0-9]+(?=nm_box)&quot;</span><span class="p">,</span> <span class="n">tag</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;d12&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;d12&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">box_length</span><span class="p">,</span> <span class="n">box_length</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;d12&quot;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;d12&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="c1"># save compressed dataframe</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="n">df_filename</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved data to </span><span class="si">{</span><span class="n">df_filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final simulation time: </span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">/</span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ns&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of data points: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># return to original directory and return dataframe</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">working_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="b2_integrand"><a class="viewcode-back" href="../../analysis_helpers.plumed_two_chain.html#analysis_helpers.plumed_two_chain.b2_integrand">[docs]</a><span class="k">def</span> <span class="nf">b2_integrand</span><span class="p">(</span><span class="n">r</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pmf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pmf_err</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="n">integrand</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">pmf</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+    <span class="n">integrand_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">pmf_err</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">integrand</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">integrand</span><span class="p">,</span> <span class="n">integrand_err</span></div>
+
+
+<div class="viewcode-block" id="integrate_simpson"><a class="viewcode-back" href="../../analysis_helpers.plumed_two_chain.html#analysis_helpers.plumed_two_chain.integrate_simpson">[docs]</a><span class="k">def</span> <span class="nf">integrate_simpson</span><span class="p">(</span>
+    <span class="n">r</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">integrand</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">integrand_err</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">prefactor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">integrand_var</span> <span class="o">=</span> <span class="n">integrand_err</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">dr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+    <span class="n">integral</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">simps</span><span class="p">(</span><span class="n">integrand</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
+    <span class="n">integral_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+        <span class="mf">0.25</span>
+        <span class="o">*</span> <span class="p">(</span>
+            <span class="n">integrand_var</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">dr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">integrand_var</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">dr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">integrand_var</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">dr</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dr</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">integral</span> <span class="o">*=</span> <span class="n">prefactor</span>
+    <span class="n">integral_err</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">prefactor</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">integral</span><span class="p">,</span> <span class="n">integral_err</span></div>
+
+
+<div class="viewcode-block" id="prepare_data"><a class="viewcode-back" href="../../analysis_helpers.plumed_two_chain.html#analysis_helpers.plumed_two_chain.prepare_data">[docs]</a><span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">cv</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">pmf</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">kde</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">x_min_data</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">bandwidth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">n_pts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+    <span class="n">x_min_kde</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">x_max_kde</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">volume_correction_plumed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">volume_correction_gr</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">integrand</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prepare time series data for plotting.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pd.DataFrame</span>
+<span class="sd">        Dataframe containing data to plot.</span>
+<span class="sd">    cv : str</span>
+<span class="sd">        Name of collective variable to plot.</span>
+<span class="sd">    block_size : int, optional</span>
+<span class="sd">        Size of blocks to average over, by default None</span>
+<span class="sd">    pmf : bool, optional</span>
+<span class="sd">        Plot potential of mean force free energy, by default True</span>
+<span class="sd">    kde : bool, optional</span>
+<span class="sd">        Plot kernel density estimate, by default False</span>
+<span class="sd">    x_min_data : float, optional</span>
+<span class="sd">        Minimum value of cv for analysis, by default 0.0</span>
+<span class="sd">    bandwidth : float, optional</span>
+<span class="sd">        Bandwidth of kernel density estimate, by default 0.05</span>
+<span class="sd">    n_pts : int, optional</span>
+<span class="sd">        Number of points to plot, by default 200</span>
+<span class="sd">    x_min_kde : float, optional</span>
+<span class="sd">        Minimum value of cv for kde, by default None</span>
+<span class="sd">    x_max_kde : float, optional</span>
+<span class="sd">        Maximum value of cv for kde, by default None</span>
+<span class="sd">    volume_correction_plumed : bool, optional</span>
+<span class="sd">        Plot volume correction from plumed, by default False</span>
+<span class="sd">    volume_correction_gr : bool, optional</span>
+<span class="sd">        Plot volume correction from gr, by default False</span>
+<span class="sd">    integrand : bool, optional</span>
+<span class="sd">        Plot integrand, by default False</span>
+<span class="sd">    integral : bool, optional</span>
+<span class="sd">        Plot integral, by default False</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.array</span>
+<span class="sd">        x values</span>
+<span class="sd">    np.array</span>
+<span class="sd">        y values</span>
+<span class="sd">    np.array</span>
+<span class="sd">        y error values (standard error)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">integral</span> <span class="ow">and</span> <span class="n">integrand</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot plot integral and integrand&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">volume_correction_plumed</span> <span class="ow">and</span> <span class="n">volume_correction_gr</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot plot volume correction from plumed and gr&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">cv</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataframe for </span><span class="si">{</span><span class="n">cv</span><span class="si">}</span><span class="s2"> is empty&quot;</span><span class="p">)</span>
+
+    <span class="c1"># parse box length from tag</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">box_length</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;([0-9]*[.])?[0-9]+(?=nm_box)&quot;</span><span class="p">,</span> <span class="n">tag</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">half_box_length</span> <span class="o">=</span> <span class="n">box_length</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+    <span class="c1"># drop NaN values</span>
+    <span class="n">dfc</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">replace</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="n">dfc</span> <span class="o">=</span> <span class="n">dfc</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="n">cv</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dropped NaN values for </span><span class="si">{</span><span class="n">cv</span><span class="si">}</span><span class="s2"> and all data is gone&quot;</span><span class="p">)</span>
+
+    <span class="c1"># drop data outside of reasonable range</span>
+    <span class="n">dfc</span> <span class="o">=</span> <span class="n">dfc</span><span class="p">[</span><span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">x_min_data</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;d12&quot;</span><span class="p">:</span>
+        <span class="n">dfc</span> <span class="o">=</span> <span class="n">dfc</span><span class="p">[</span><span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mf">0.95</span> <span class="o">*</span> <span class="n">half_box_length</span><span class="p">]</span>
+        <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">half_box_length</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">x_min_kde</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">xmin</span> <span class="o">=</span> <span class="n">x_min_kde</span>
+    <span class="k">if</span> <span class="n">x_max_kde</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">xmax</span> <span class="o">=</span> <span class="n">x_max_kde</span>
+
+    <span class="c1"># verify that there is data in the range</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dfc</span><span class="p">[(</span><span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">xmin</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">xmax</span><span class="p">)])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No data in range </span><span class="si">{</span><span class="n">xmin</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">xmax</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">cv</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># gather data</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">dfc</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="c1"># Determine block size as 10 ns of data or 20 blocks, whichever is smaller</span>
+    <span class="k">if</span> <span class="n">block_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">max_block_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">])</span> <span class="o">//</span> <span class="mi">20</span><span class="p">))</span>
+        <span class="n">n_frames</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">dt_frame_ns</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">dfc</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">n_frames</span><span class="p">]</span> <span class="o">-</span> <span class="n">dfc</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">n_frames</span> <span class="o">/</span> <span class="mf">1000.0</span>
+        <span class="p">)</span>
+        <span class="n">block_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="mf">10.0</span> <span class="o">/</span> <span class="n">dt_frame_ns</span><span class="p">))</span>
+        <span class="n">block_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">block_size</span><span class="p">,</span> <span class="n">max_block_size</span><span class="p">)</span>
+
+    <span class="c1"># transform data</span>
+    <span class="n">block_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">block_size</span><span class="p">])</span>
+    <span class="n">block_error</span> <span class="o">=</span> <span class="n">BlockError</span><span class="p">(</span><span class="n">block_sizes</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kde</span> <span class="ow">and</span> <span class="n">pmf</span><span class="p">:</span>
+        <span class="n">edges</span><span class="p">,</span> <span class="n">fes</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">fes_error</span> <span class="o">=</span> <span class="n">block_error</span><span class="o">.</span><span class="n">x_kde_fes</span><span class="p">(</span>
+            <span class="n">n_pts</span><span class="o">=</span><span class="n">n_pts</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="n">bandwidth</span><span class="p">,</span> <span class="n">x_min</span><span class="o">=</span><span class="n">xmin</span><span class="p">,</span> <span class="n">x_max</span><span class="o">=</span><span class="n">xmax</span>
+        <span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">fes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">fes_error</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="k">elif</span> <span class="n">kde</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pmf</span><span class="p">:</span>
+        <span class="n">edges</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pdf_error</span> <span class="o">=</span> <span class="n">block_error</span><span class="o">.</span><span class="n">x_kde</span><span class="p">(</span>
+            <span class="n">n_pts</span><span class="o">=</span><span class="n">n_pts</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="n">bandwidth</span><span class="p">,</span> <span class="n">x_min</span><span class="o">=</span><span class="n">xmin</span><span class="p">,</span> <span class="n">x_max</span><span class="o">=</span><span class="n">xmax</span>
+        <span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">pdf</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">pdf_error</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Freedman-Diaconis rule for bin width</span>
+        <span class="k">if</span> <span class="n">bandwidth</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">q75</span><span class="p">,</span> <span class="n">q25</span> <span class="o">=</span> <span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span><span class="o">.</span><span class="n">quantile</span><span class="p">([</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">])</span>
+            <span class="n">bin_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">q75</span> <span class="o">-</span> <span class="n">q25</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">dfc</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="n">bin_width</span><span class="p">))</span>
+
+        <span class="c1"># if bandwidth is 1, use np.arange to bin data</span>
+        <span class="k">elif</span> <span class="n">bandwidth</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">cv</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bin_width</span> <span class="o">=</span> <span class="n">bandwidth</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">dfc</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="n">bin_width</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">pmf</span><span class="p">:</span>
+            <span class="n">centers</span><span class="p">,</span> <span class="n">fes</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">fes_error</span><span class="p">,</span> <span class="n">edges</span> <span class="o">=</span> <span class="n">block_error</span><span class="o">.</span><span class="n">x_histo_fes</span><span class="p">(</span>
+                <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">return_edges</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span> <span class="o">=</span> <span class="n">centers</span><span class="p">,</span> <span class="n">fes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">fes_error</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">centers</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pdf_error</span><span class="p">,</span> <span class="n">edges</span> <span class="o">=</span> <span class="n">block_error</span><span class="o">.</span><span class="n">x_histo</span><span class="p">(</span>
+                <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">return_edges</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span> <span class="o">=</span> <span class="n">centers</span><span class="p">,</span> <span class="n">pdf</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">pdf_error</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;d12&quot;</span><span class="p">:</span>
+        <span class="c1"># finite volume correction</span>
+        <span class="k">if</span> <span class="n">volume_correction_plumed</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">volume_correction_gr</span><span class="p">:</span>
+            <span class="n">shell_volumes</span> <span class="o">=</span> <span class="mf">4.0</span> <span class="o">/</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="n">y</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">shell_volumes</span><span class="p">)</span>
+
+        <span class="c1"># subtract average pmf in plateau region</span>
+        <span class="n">plateau_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">[(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mf">4.8</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="mf">5.2</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">plateau_mean</span><span class="p">):</span>
+            <span class="n">y</span> <span class="o">-=</span> <span class="n">plateau_mean</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Plateau region is empty, not subtracting mean&quot;</span><span class="p">)</span>
+
+        <span class="c1"># calculate boltzmann weighted integrand</span>
+        <span class="k">if</span> <span class="n">integrand</span> <span class="ow">or</span> <span class="n">integral</span><span class="p">:</span>
+            <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span> <span class="o">=</span> <span class="n">b2_integrand</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span><span class="p">)</span>
+
+        <span class="c1"># integrate using simpson&#39;s rule</span>
+        <span class="k">if</span> <span class="n">integral</span><span class="p">:</span>
+            <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span> <span class="o">=</span> <span class="n">integrate_simpson</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span><span class="p">,</span> <span class="n">prefactor</span><span class="o">=-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span></div>
+
+
+<div class="viewcode-block" id="plt_dyn"><a class="viewcode-back" href="../../analysis_helpers.plumed_two_chain.html#analysis_helpers.plumed_two_chain.plt_dyn">[docs]</a><span class="k">def</span> <span class="nf">plt_dyn</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">cv</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot dynamics of a collective variable.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pd.DataFrame</span>
+<span class="sd">        Dataframe containing data to plot.</span>
+<span class="sd">    cv : str</span>
+<span class="sd">        Name of collective variable to plot.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    fig : plt.figure</span>
+<span class="sd">        Figure object.</span>
+<span class="sd">    ax : plt.Axes</span>
+<span class="sd">        Axes object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># remove periods from tag</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\.&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span> <span class="o">/</span> <span class="mf">1e3</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+
+    <span class="c1"># generate FES figure</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mf">1.25</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="c1"># ax.set_title(f&quot;{tag}&quot;, y=1.05)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$t$ [ns]&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;d12&quot;</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$r$ [nm]&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;rg1&quot;</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$R_</span><span class="si">{g1}</span><span class="s2">$ [nm]&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;rg2&quot;</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$R_</span><span class="si">{g2}</span><span class="s2">$ [nm]&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown cv&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Save figure and return objects</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">cv</span><span class="si">}</span><span class="s2">_dyn.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
+
+
+<div class="viewcode-block" id="plt_fes_conv"><a class="viewcode-back" href="../../analysis_helpers.plumed_two_chain.html#analysis_helpers.plumed_two_chain.plt_fes_conv">[docs]</a><span class="k">def</span> <span class="nf">plt_fes_conv</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">cv</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">time_slices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">cv_slices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot dynamics of a collective variable.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pd.DataFrame</span>
+<span class="sd">        Dataframe containing data to plot.</span>
+<span class="sd">    cv : str</span>
+<span class="sd">        Name of collective variable to plot.</span>
+<span class="sd">    time_slices : np.array</span>
+<span class="sd">        Time slices to plot.</span>
+<span class="sd">    cv_slices : np.array</span>
+<span class="sd">        CV slices to plot.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    figs : list[plt.figure]</span>
+<span class="sd">        Figure objects.</span>
+<span class="sd">    axs : list[plt.Axes]</span>
+<span class="sd">        Axes objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">figs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">axs</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># remove periods from tag</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\.&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+
+    <span class="c1"># KDE information</span>
+    <span class="n">volcorr_plumed</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">xmin_data</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">xmin</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">xmax</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;d12&quot;</span><span class="p">:</span>
+        <span class="n">volcorr_plumed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">xmin_data</span> <span class="o">=</span> <span class="mf">0.2</span>
+        <span class="n">xmin</span> <span class="o">=</span> <span class="mf">0.2</span>
+        <span class="n">xmax</span> <span class="o">=</span> <span class="mf">5.5</span>
+
+    <span class="c1"># ANCHOR: generate FES mean convergence figure</span>
+    <span class="n">viridis</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s2">&quot;viridis&quot;</span><span class="p">)</span>
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">viridis</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">time_slices</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
+    <span class="n">linestyle</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;--&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">time_slices</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+
+    <span class="c1"># plot PMF estimate for each sunset of df where time &lt; time_slice</span>
+    <span class="k">for</span> <span class="n">time_slice</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span><span class="n">time_slices</span><span class="p">,</span> <span class="n">cmap</span><span class="p">,</span> <span class="n">linestyle</span><span class="p">),</span>
+        <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">time_slices</span><span class="p">),</span>
+        <span class="n">colour</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;FES mean convergence&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">df_slice</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">time_slice</span><span class="p">]</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">pmf</span><span class="p">,</span> <span class="n">pmf_err</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span>
+            <span class="n">df_slice</span><span class="p">,</span>
+            <span class="n">cv</span><span class="p">,</span>
+            <span class="n">block_size</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span>
+            <span class="n">pmf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">kde</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">volume_correction_plumed</span><span class="o">=</span><span class="n">volcorr_plumed</span><span class="p">,</span>
+            <span class="n">x_min_data</span><span class="o">=</span><span class="n">xmin_data</span><span class="p">,</span>
+            <span class="n">n_pts</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+            <span class="n">x_min_kde</span><span class="o">=</span><span class="n">xmin</span><span class="p">,</span>
+            <span class="n">x_max_kde</span><span class="o">=</span><span class="n">xmax</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pmf</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time_slice</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">,</span>
+        <span class="n">pmf</span> <span class="o">-</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">pmf_err</span><span class="p">,</span>
+        <span class="n">pmf</span> <span class="o">+</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">pmf_err</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$95\%$ CI&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># set plot text elements</span>
+    <span class="c1"># ax.set_title(tag[:25], y=1.05)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\Delta F$ [$k_\mathrm</span><span class="si">{B}</span><span class="s2"> \, T$]&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;d12&quot;</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Chain Distance [nm]&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;rg1&quot;</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$R_</span><span class="si">{g1}</span><span class="s2">$ [nm]&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;rg2&quot;</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$R_</span><span class="si">{g2}</span><span class="s2">$ [nm]&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown cv&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$t_f$ [ns]&quot;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># set plot limits</span>
+    <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ymin</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">ymax</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">))</span>
+
+    <span class="c1"># Save figure and return objects</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">cv</span><span class="si">}</span><span class="s2">_fes_mean_conv.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span>
+    <span class="n">figs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">axs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+
+    <span class="c1"># ANCHOR: generate FES standard error convergence figure</span>
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">viridis</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cv_slices</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
+    <span class="n">linestyle</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;--&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cv_slices</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+
+    <span class="c1"># run block error analysis for data</span>
+    <span class="n">block_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">//</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">block_error</span> <span class="o">=</span> <span class="n">BlockError</span><span class="p">(</span><span class="n">block_sizes</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">edges</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">fes_error</span> <span class="o">=</span> <span class="n">block_error</span><span class="o">.</span><span class="n">x_kde_fes</span><span class="p">(</span>
+        <span class="n">n_pts</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">x_min</span><span class="o">=</span><span class="n">xmin</span><span class="p">,</span> <span class="n">x_max</span><span class="o">=</span><span class="n">xmax</span>
+    <span class="p">)</span>
+
+    <span class="c1"># locate indices of edges nearest to each cv_slice</span>
+    <span class="n">cv_slice_indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cv_slice</span> <span class="ow">in</span> <span class="n">cv_slices</span><span class="p">:</span>
+        <span class="n">cv_slice_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">edges</span> <span class="o">-</span> <span class="n">cv_slice</span><span class="p">)))</span>
+
+    <span class="c1"># plot fes_error vs block_size for each cv_slice</span>
+    <span class="k">for</span> <span class="n">cv_slice_index</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cv_slice_indices</span><span class="p">,</span> <span class="n">cmap</span><span class="p">,</span> <span class="n">linestyle</span><span class="p">):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">block_sizes</span><span class="p">,</span>
+            <span class="n">fes_error</span><span class="p">[:,</span> <span class="n">cv_slice_index</span><span class="p">],</span>
+            <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">edges</span><span class="p">[</span><span class="n">cv_slice_index</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">linestyle</span><span class="o">=</span><span class="n">line</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># set plot text elements</span>
+    <span class="c1"># ax.set_title(tag[:25], y=1.05)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Block Size&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;d12&quot;</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$</span><span class="si">{SE}</span><span class="s2">_{\Delta F}$(Chain Distance) [$k_\mathrm</span><span class="si">{B}</span><span class="s2"> \, T$]&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;Chain Distance [nm]&quot;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;rg1&quot;</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$</span><span class="si">{SE}</span><span class="s2">_{\Delta F}{R_</span><span class="si">{g1}</span><span class="s2">}$ [$k_\mathrm</span><span class="si">{B}</span><span class="s2"> \, T$]&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$R_</span><span class="si">{g1}</span><span class="s2">$ [nm]&quot;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;rg2&quot;</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$</span><span class="si">{SE}</span><span class="s2">_{\Delta F}{R_</span><span class="si">{g2}</span><span class="s2">}$ [$k_\mathrm</span><span class="si">{B}</span><span class="s2"> \, T$]&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$R_</span><span class="si">{g2}</span><span class="s2">$ [nm]&quot;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown cv&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Save figure and return objects</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">cv</span><span class="si">}</span><span class="s2">_fes_std_err_conv.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span>
+    <span class="n">figs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">axs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">figs</span><span class="p">,</span> <span class="n">axs</span></div>
+
+
+<div class="viewcode-block" id="plt_b2_conv"><a class="viewcode-back" href="../../analysis_helpers.plumed_two_chain.html#analysis_helpers.plumed_two_chain.plt_b2_conv">[docs]</a><span class="k">def</span> <span class="nf">plt_b2_conv</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate B2 convergence plot. B2 is the two-chain second osmotic</span>
+<span class="sd">    virial coefficient.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pd.DataFrame</span>
+<span class="sd">        Data frame containing the data to be plotted</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    fig : plt.figure</span>
+<span class="sd">        Figure object</span>
+<span class="sd">    ax : plt.Axes</span>
+<span class="sd">        Axes object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># remove periods from tag</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\.&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+
+    <span class="c1"># calculate data</span>
+    <span class="n">t_subset_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="n">b2_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">t_subset_arr</span><span class="p">)</span>
+    <span class="n">b2_err_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">t_subset_arr</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+        <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t_subset_arr</span><span class="p">)),</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Calculating B2&quot;</span><span class="p">,</span>
+        <span class="n">colour</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span>
+        <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">df_slice</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">t_subset_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+        <span class="n">block_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">4000</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_slice</span><span class="p">)</span> <span class="o">//</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">b2_err</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span>
+            <span class="n">df_slice</span><span class="p">,</span>
+            <span class="s2">&quot;d12&quot;</span><span class="p">,</span>
+            <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
+            <span class="n">pmf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">kde</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">bandwidth</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+            <span class="n">volume_correction_plumed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">integral</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">x_min_data</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="n">n_pts</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+            <span class="n">x_min_kde</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+            <span class="n">x_max_kde</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">b2_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">b2</span>
+        <span class="n">b2_err_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">b2_err</span>
+
+    <span class="c1"># generate figure</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_subset_arr</span> <span class="o">/</span> <span class="mf">1e3</span><span class="p">,</span> <span class="n">b2_arr</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+        <span class="n">t_subset_arr</span> <span class="o">/</span> <span class="mf">1e3</span><span class="p">,</span>
+        <span class="n">b2_arr</span> <span class="o">-</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">b2_err_arr</span><span class="p">,</span>
+        <span class="n">b2_arr</span> <span class="o">+</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">b2_err_arr</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$B_2$ [nm$^3$]&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Time [ns]&quot;</span><span class="p">)</span>
+    <span class="c1"># ax.set_title(tag[:25], y=1.05)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">_b2_conv.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
+
+
+<div class="viewcode-block" id="plumed_plots"><a class="viewcode-back" href="../../analysis_helpers.plumed_two_chain.html#analysis_helpers.plumed_two_chain.plumed_plots">[docs]</a><span class="k">def</span> <span class="nf">plumed_plots</span><span class="p">(</span><span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cv</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create Plumed plots for a given data set.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_dir : str</span>
+<span class="sd">        Path to the directory containing the plumed data files</span>
+<span class="sd">    tag : str</span>
+<span class="sd">        Unique tag for the data set</span>
+<span class="sd">    cv : str</span>
+<span class="sd">        Name of the collective variable</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+
+    <span class="n">log</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;plumed_plots.log&quot;</span><span class="p">)</span>
+    <span class="n">dir_plumed</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data_dir</span><span class="si">}</span><span class="s2">/plumed&quot;</span><span class="p">)</span>
+
+    <span class="c1"># create plumed plots sub-directory and change to it</span>
+    <span class="n">dir_plumed_figures</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dir_plumed</span><span class="si">}</span><span class="s2">/figures&quot;</span><span class="p">)</span>
+    <span class="n">dir_plumed_figures</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dir_plumed_figures</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># load plumed data</span>
+    <span class="n">dir_plumed_data</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dir_plumed</span><span class="si">}</span><span class="s2">/data&quot;</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dir_plumed_data</span><span class="si">}</span><span class="s2">/df_plumed_</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">.parquet&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded data from </span><span class="si">{</span><span class="n">dir_plumed_data</span><span class="si">}</span><span class="s2">/df_plumed_</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">.parquet&quot;</span><span class="p">)</span>
+
+    <span class="c1"># convert dask to pandas for plotting</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># get time slices to estimate FES</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">time_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+    <span class="n">time_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+    <span class="n">time_range</span> <span class="o">=</span> <span class="n">time_max</span> <span class="o">-</span> <span class="n">time_min</span>
+    <span class="n">time_percentiles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">time_slices</span> <span class="o">=</span> <span class="n">time_min</span> <span class="o">+</span> <span class="n">time_percentiles</span> <span class="o">*</span> <span class="n">time_range</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time slices: </span><span class="si">{</span><span class="n">time_slices</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># get slices of data for FES plots</span>
+    <span class="n">cv_data</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cv</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">cv_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">cv_data</span><span class="p">)</span>
+    <span class="n">cv_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">cv_data</span><span class="p">)</span>
+    <span class="n">cv_range</span> <span class="o">=</span> <span class="n">cv_max</span> <span class="o">-</span> <span class="n">cv_min</span>
+    <span class="n">cv_percentiles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">cv_slices</span> <span class="o">=</span> <span class="n">cv_min</span> <span class="o">+</span> <span class="n">cv_percentiles</span> <span class="o">*</span> <span class="n">cv_range</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CV slices: </span><span class="si">{</span><span class="n">cv_slices</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">set_style</span><span class="p">()</span>
+
+    <span class="c1"># Plot CV vs time</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">plt_dyn</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">cv</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+    <span class="c1"># Plot FES mean and error estimates vs time</span>
+    <span class="n">figs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">plt_fes_conv</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">cv</span><span class="p">,</span> <span class="n">time_slices</span><span class="p">,</span> <span class="n">cv_slices</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">figs</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+    <span class="c1"># Plot B2 vs time if CV is d12</span>
+    <span class="k">if</span> <span class="n">cv</span> <span class="o">==</span> <span class="s2">&quot;d12&quot;</span><span class="p">:</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">plt_b2_conv</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Alec Glisman.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
