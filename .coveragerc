@@ -2,4 +2,4 @@
 concurrency = multiprocessing
 parallel = true
 sigterm = true
-omit = **/archive/**,**/molywood/**,tutorials/**
+omit = **/archive/**

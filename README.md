@@ -1,14 +1,16 @@
-# Data Analysis Repository
+# Two-Chain PAA Data Analysis Repository
 
-**Summary:** Data analysis scripts and notebooks for my MD research projects in the Wang Group.  
-**Authors:** [Alec Glisman](https://github.com/alec-glisman)  
+**Summary:** Public facing data analysis repository for MD simulations of two-chain PAA in water.
+Analysis tools are written in Python and documented using Sphinx.
+Parallelized analysis scripts extend the MDAnalysis library and are called by scripts in the `analysis` directory to calculate collective variables.
+Collective variables are then analyzed with Jupiter notebooks in the `analysis` directory.  
+**Authors:** [Alec Glisman](https://github.com/alec-glisman), [Sriteja Mantha](https://github.com/sritejamantha)  
 
 [![CodeFactor](https://www.codefactor.io/repository/github/alec-glisman/data-analysis/badge?s=80921ba60816cb7eea4040f846dafcbbc123c96c)](https://www.codefactor.io/repository/github/alec-glisman/data-analysis)
-[![CodeCov](https://codecov.io/gh/alec-glisman/Analysis-Two-Chain-PAa/branch/main/graph/badge.svg?token=5ALJXCQZ61)](https://codecov.io/gh/alec-glisman/Analysis-Two-Chain-PAa)
 [![WakaTime](https://wakatime.com/badge/github/alec-glisman/data-analysis.svg)](https://wakatime.com/badge/github/alec-glisman/data-analysis)
 
-[![Pytest](https://github.com/alec-glisman/Analysis-Two-Chain-PAa/actions/workflows/conda-pytest.yml/badge.svg)](https://github.com/alec-glisman/Analysis-Two-Chain-PAa/actions/workflows/conda-pytest.yml)
-[![Linting](https://github.com/alec-glisman/Analysis-Two-Chain-PAa/actions/workflows/code-linting.yml/badge.svg)](https://github.com/alec-glisman/Analysis-Two-Chain-PAa/actions/workflows/code-linting.yml)
+[![Pytest](https://github.com/alec-glisman/Analysis-Two-Chain-PAA/actions/workflows/conda-pytest.yml/badge.svg)](https://github.com/alec-glisman/Analysis-Two-Chain-PAA/actions/workflows/conda-pytest.yml)
+[![Linting](https://github.com/alec-glisman/Analysis-Two-Chain-PAA/actions/workflows/code-linting.yml/badge.svg)](https://github.com/alec-glisman/Analysis-Two-Chain-PAA/actions/workflows/code-linting.yml)
 
 ## Project structure
 
@@ -21,7 +23,6 @@
 - `requirements`: Conda environment files
 - `src`: Python modules for loading MD simulation data and calculating collective variables.
 Unit tests are performed using Pytest.
-- `tutorials`: External repositories with tutorials for using some of the analysis tools I employ.
 
 ### Documentation
 
