@@ -166,7 +166,7 @@ class ParallelAnalysisBase(AnalysisBase):
         frames: np.array = None,
         verbose: bool = None,
         n_jobs: int = 1,
-        module: str = "dask",
+        module: str = "joblib",
         method: str = None,
         n_blocks: int = None,
         **kwargs,
@@ -181,7 +181,7 @@ class ParallelAnalysisBase(AnalysisBase):
         stop : int, optional
             stop frame of analysis
         step : int, optional
-            number of frames to skip between each analysed frame
+            number of frames to skip between each analyzed frame
         frames : array_like, optional
             array of integers or booleans to slice trajectory; `frames` can
             only be used *instead* of `start`, `stop`, and `step`. Setting
@@ -196,7 +196,8 @@ class ParallelAnalysisBase(AnalysisBase):
             used
             .. versionadded:: PERSONAL-COPY
         module : str, optional
-            Parallelization module to use. Default: ``"multiprocessing"``.
+            Parallelization module to use. Default: ``"joblib"``. Options are
+            ``"joblib"``, ``"dask"``, or ``"multiprocessing"``.
             .. versionadded:: PERSONAL-COPY
         method : str, optional
             Parallelization method to use. This is the Dask scheduler,

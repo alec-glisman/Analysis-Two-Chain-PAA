@@ -17,7 +17,7 @@ def set_style():
     # Pyplot parameters
     plt.rcParams["axes.axisbelow"] = True
     plt.rcParams["agg.path.chunksize"] = 10000
-    plt.style.use(["seaborn-colorblind"])
+    plt.style.use(["tableau-colorblind10"])
 
     # Matplotlib parameters
     # mpl.use("TKAgg")
@@ -55,12 +55,18 @@ def set_style():
             "xtick.minor.size": 3,
             "xtick.minor.width": 0.9,
             "xtick.minor.visible": True,
+            "xtick.direction": "in",
+            "xtick.bottom": True,
+            "xtick.top": True,
             "ytick.labelsize": 16,
             "ytick.major.size": 5,
             "ytick.major.width": 1.2,
             "ytick.minor.size": 3,
             "ytick.minor.width": 0.9,
             "ytick.minor.visible": True,
+            "ytick.direction": "in",
+            "ytick.left": True,
+            "ytick.right": True,
         }
     )
 

@@ -33,6 +33,7 @@ def plumed_df(
     t_ps_remove: float = 100,
     refresh: bool = False,
     verbose: bool = False,
+    remove_duplicates: bool = False,
 ) -> pd.DataFrame:
     """
     Load Plumed data from a directory. Data is automatically saved to a
@@ -55,6 +56,8 @@ def plumed_df(
         instead of the original data files, by default False
     verbose : bool, optional
         If True, the logging level is set to DEBUG, by default False
+    remove_duplicates : bool, optional
+        If True, duplicate rows are removed from the dataframe, by default True
 
     Returns
     -------
@@ -145,7 +148,8 @@ def plumed_df(
         # drop nan rows
         df = df.dropna()
         # drop duplicate rows
-        df = df.drop_duplicates(subset="time", keep="last")
+        if remove_duplicates:
+            df = df.drop_duplicates(subset="time", keep="last")
         # drop first nanosecond of data
         df = df[df["time"] >= t_ps_remove]
 
@@ -207,8 +211,16 @@ def plumed_df(
 
 
 def b2_integrand(r: np.ndarray, pmf: np.ndarray, pmf_err: np.ndarray):
+    # calculate integrand
     integrand = (np.exp(-pmf) - 1.0) * np.square(r)
-    integrand_err = np.abs(pmf_err) * np.abs(integrand)
+    # first, propagate uncertainty in pmf to its boltzmann weight
+    pmf_var = np.square(pmf_err)
+    exp_var = pmf_var * np.square(np.exp(-pmf))
+    # then, propagate uncertainty in boltzmann weight to integrand treating r^2 as constant
+    integrand_var = exp_var * np.power(r, 4)
+    # finally, take square root to get uncertainty in integrand
+    integrand_err = np.sqrt(integrand_var)
+    # return integrand and uncertainty
     return integrand, integrand_err
 
 
@@ -218,21 +230,27 @@ def integrate_simpson(
     integrand_err: np.ndarray,
     prefactor: float = -2 * np.pi,
 ):
-    integrand_var = integrand_err**2
-    dr = np.diff(r)
+    # integrate using simpson's rule
+    integral = integrate.simpson(integrand, x=r)
 
-    integral = integrate.simps(integrand, x=r)
-    integral_err = np.sqrt(
-        0.25
-        * (
-            integrand_var[0] * (dr[0] ** 2)
-            + integrand_var[-1] * (dr[-1] ** 2)
-            + np.sum(integrand_var[1:-1] * (dr[:-1] + dr[1:]) ** 2)
-        )
-    )
+    # propagate uncertainty in integrand using simpson's rule
+    integrand_var = integrand_err**2
+    dr = r[1] - r[0]
+    # split integrand uncertainty into 3 parts: ends, factor of 4, factor of 2
+    int_ends = np.array([integrand_var[0], integrand_var[-1]])
+    int_factor_four = (4**2) * integrand_var[1:-1:2]
+    int_factor_two = (2**2) * integrand_var[2:-1:2]
+    # sum all parts and multiply by dr/3 to get variance in integral
+    int_all = np.concatenate((int_ends, int_factor_four, int_factor_two))
+    integral_var = np.sum(int_all) * ((dr / 3.0) ** 2)
+    # take square root to get uncertainty in integral
+    integral_err = np.sqrt(integral_var)
+
+    # multiply by prefactor
     integral *= prefactor
     integral_err *= np.abs(prefactor)
 
+    # return integral and uncertainty
     return integral, integral_err
 
 
@@ -336,16 +354,36 @@ def prepare_data(
     # gather data
     data = dfc[cv].values
     weights = dfc["weight"].values
+    if np.isnan(data).any():
+        count = np.isnan(data).sum()
+        raise ValueError(f"NaN values in {cv}: {count}")
+    if np.isinf(data).any():
+        count = np.isinf(data).sum()
+        raise ValueError(f"Inf values in {cv}: {count}")
+    if np.isnan(weights).any():
+        count = np.isnan(weights).sum()
+        raise ValueError(f"NaN values in weights: {count}")
+    if np.isinf(weights).any():
+        count = np.isinf(weights).sum()
+        raise ValueError(f"Inf values in weights: {count}")
+    if len(data) == 0:
+        raise ValueError(f"Data for {cv} is empty")
 
     # Determine block size as 10 ns of data or 20 blocks, whichever is smaller
     if block_size is None:
-        max_block_size = int(np.floor(len(dfc[cv]) // 20))
-        n_frames = 10
+        max_block_size = max(int(np.floor(len(weights) // 20)), 1)
+        n_frames = 100
         dt_frame_ns = (
             (dfc["time"].iloc[n_frames] - dfc["time"].iloc[0]) / n_frames / 1000.0
         )
         block_size = int(np.ceil(10.0 / dt_frame_ns))
         block_size = min(block_size, max_block_size)
+
+    # verify that block size is not larger than data
+    if block_size > len(weights):
+        warnings.warn(f"Block size {block_size} is larger than data")
+        block_size = max(len(weights) // 20, 1)
+        warnings.warn(f"Setting block size to {block_size}")
 
     # transform data
     block_sizes = np.array([block_size])
@@ -519,10 +557,26 @@ def plt_fes_conv(
         desc="FES mean convergence",
     ):
         df_slice = df[df["time"] <= time_slice]
+
+        # verify that there is data in the range
+        if len(df_slice[(df_slice[cv] >= xmin) & (df_slice[cv] <= xmax)]) == 0:
+            warnings.warn(f"No data in range {xmin} to {xmax} for {cv}")
+            continue
+
+        # verify no nan or inf in df_slice[cv]
+        if np.isnan(df_slice[cv]).any():
+            count = np.isnan(df_slice[cv]).sum()
+            warnings.warn(f"NaN values in {cv} for time < {time_slice} ns: {count}")
+            continue
+        if np.isinf(df_slice[cv]).any():
+            count = np.isinf(df_slice[cv]).sum()
+            warnings.warn(f"Inf values in {cv} for time < {time_slice} ns: {count}")
+            continue
+
         x, pmf, pmf_err = prepare_data(
             df_slice,
             cv,
-            block_size=4000,
+            block_size=100,
             pmf=True,
             kde=True,
             volume_correction_plumed=volcorr_plumed,
@@ -723,6 +777,10 @@ def plumed_plots(data_dir: str, tag: str, cv: str) -> None:
         df = df.compute()
     except AttributeError:
         pass
+
+    # remove nan values
+    df = df.replace([np.inf, -np.inf], np.nan)
+    df = df.dropna()
 
     # get time slices to estimate FES
     time = df["time"].values

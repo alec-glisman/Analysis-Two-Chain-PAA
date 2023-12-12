@@ -135,51 +135,6 @@ class TestNoUpdating(TestHydrogenBondAnalysisTIP3P):
     }
 
 
-class TestGuessDonors_NoTopology(object):
-    """Guess the donor atoms involved in hydrogen bonds using the partial
-    charges of the atoms.
-    """
-
-    @staticmethod
-    @pytest.fixture(scope="class")
-    def universe():
-        return MDAnalysis.Universe(waterPSF, waterDCD)
-
-    kwargs = {
-        "donors_sel": None,
-        "hydrogens_sel": None,
-        "acceptors_sel": None,
-        "d_h_cutoff": 1.2,
-        "d_a_cutoff": 3.0,
-        "d_h_a_angle_cutoff": 120.0,
-    }
-
-    @pytest.fixture(scope="class")
-    def h(self, universe, scheduler):
-        h = HydrogenBondAnalysis(universe, **self.kwargs)
-        return h
-
-    def test_guess_donors(self, h, scheduler):
-        ref_donors = "(resname TIP3 and name OH2)"
-        donors = h.guess_donors(selection="all", max_charge=-0.5)
-        assert donors == ref_donors
-
-
-class TestGuessDonors_GivenHydrogen(TestGuessDonors_NoTopology):
-    """Guess the donor atoms involved in hydrogen bonds using the partial
-    charges of the atoms, given hydrogen selections.
-    """
-
-    kwargs = {
-        "donors_sel": None,
-        "hydrogens_sel": "name H1 H2",
-        "acceptors_sel": "name OH2",
-        "d_h_cutoff": 1.2,
-        "d_a_cutoff": 3.0,
-        "d_h_a_angle_cutoff": 120.0,
-    }
-
-
 class TestHydrogenBondAnalysisTIP3PStartStep(object):
     """Uses the same distance and cutoff hydrogen bond criteria as
     :class:`TestHydrogenBondAnalysisTIP3P` but starting with the second

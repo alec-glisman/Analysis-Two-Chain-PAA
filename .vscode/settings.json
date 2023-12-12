@@ -32,5 +32,8 @@
     "python.analysis.typeCheckingMode": "off",
     "python.testing.pytestArgs": [
         "src"
+    ],
+    "cSpell.words": [
+        "carboxy"
     ]
 }
